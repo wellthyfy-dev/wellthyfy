@@ -130,44 +130,7 @@ export default function Hero() {
           </motion.div>
 
           {/* Trust row */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.8 }}
-            className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-4"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex -space-x-2.5" aria-hidden="true">
-                {[
-                  "from-well-400 to-well-600",
-                  "from-navy-500 to-navy-700",
-                  "from-gold-400 to-gold-600",
-                  "from-well-500 to-navy-600",
-                ].map((g, i) => (
-                  <span
-                    key={i}
-                    className={`grid size-9 place-items-center rounded-full bg-gradient-to-br ${g} text-[11px] font-bold text-white ring-2 ring-white`}
-                  >
-                    {["P", "K", "A", "+"][i]}
-                  </span>
-                ))}
-              </div>
-              <p className="text-sm text-ink-soft">
-                <span className="font-semibold text-ink">1000+</span> people growing together
-              </p>
-            </div>
-
-            <span className="hidden h-5 w-px bg-navy-900/10 sm:block" aria-hidden="true" />
-
-            <div className="flex items-center gap-2">
-              <span className="flex gap-0.5" aria-hidden="true">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="size-4 fill-gold-400 text-gold-400" />
-                ))}
-              </span>
-              <p className="text-sm text-ink-soft">Loved by our community</p>
-            </div>
-          </motion.div>
+      
         </div>
       </div>
 
