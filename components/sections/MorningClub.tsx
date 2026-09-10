@@ -74,7 +74,7 @@ export default function MorningClub() {
                 <li key={step.title} className="relative">
                   <div
                     className={cn(
-                      "flex items-start gap-5 sm:items-center sm:gap-0",
+                      "flex items-start gap-5 sm:items-center sm:gap-12",
                       alignRight ? "sm:flex-row-reverse" : "sm:flex-row",
                     )}
                   >
@@ -82,7 +82,7 @@ export default function MorningClub() {
                     <motion.div
                       className={cn(
                         "order-2 flex-1 sm:order-none",
-                        alignRight ? "sm:pl-12 sm:text-left" : "sm:pr-12 sm:text-right",
+                        alignRight ? "sm:text-left" : "sm:text-right",
                       )}
                       initial={{ opacity: 0, x: reduce ? 0 : alignRight ? 40 : -40 }}
                       whileInView={{ opacity: 1, x: 0 }}

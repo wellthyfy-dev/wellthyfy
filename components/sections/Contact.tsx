@@ -201,8 +201,8 @@ function ContactForm() {
             className="mt-5 flex items-start gap-2.5 rounded-xl border border-well-200 bg-well-50 px-4 py-3.5 text-sm font-medium text-well-800"
           >
             <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-well-600" />
-            Thank you — your message is with our team. We have emailed you a confirmation and
-            will be in touch soon.
+            Thank you — your message is with our team. We have emailed you a confirmation and will
+            be in touch soon.
           </motion.p>
         )}
 
@@ -243,10 +243,10 @@ function MapEmbed() {
       />
 
       {/* Sits below the map rather than over it, so it never blocks panning */}
-      <div className="flex items-center justify-between gap-3 border-t border-navy-900/7 bg-white px-4 py-3.5">
+      <div className="flex flex-col items-start gap-3 border-t border-navy-900/7 bg-white px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
         <span className="min-w-0 text-left text-sm leading-snug">
           <span className="block font-semibold text-ink">Wellthyfy — Puducherry</span>
-          <span className="block truncate text-xs text-ink-soft">{siteConfig.address.full}</span>
+          <span className="block text-xs text-ink-soft sm:truncate">{siteConfig.address.full}</span>
         </span>
         <a
           href={MAPS_URL}
@@ -275,7 +275,7 @@ export default function Contact() {
 
         <div className="mt-14 grid gap-7 lg:mt-16 lg:grid-cols-[1fr_1.15fr]">
           {/* Details + map */}
-          <div className="flex flex-col gap-6">
+          <div className="flex min-w-0 flex-col gap-6">
             <Reveal direction="right">
               <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
                 {details.map((d) => (

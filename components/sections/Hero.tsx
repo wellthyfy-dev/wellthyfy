@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, Star, Users } from "lucide-react";
+import { ArrowRight, Users } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { EASE } from "@/components/ui/Reveal";
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
@@ -128,9 +128,6 @@ export default function Hero() {
               <Users className="size-4.5 transition-transform duration-300 group-hover:scale-110" />
             </a>
           </motion.div>
-
-          {/* Trust row */}
-      
         </div>
       </div>
 

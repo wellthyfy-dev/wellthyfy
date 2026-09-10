@@ -125,6 +125,13 @@
     scroll-behavior: smooth;
     scroll-padding-top: 7.5rem;
     -webkit-text-size-adjust: 100%;
+    /* Reveal slides elements in from +/-48px. On a 375px screen with 20px
+       gutters that escapes the viewport and makes the page scroll sideways
+       while sections are still animating. `clip` creates no scroll container
+       (so nothing can pan, and `position: sticky` keeps working); `hidden` is
+       the fallback for browsers without `clip`. */
+    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   body {
@@ -134,6 +141,7 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     overflow-x: hidden;
+    overflow-x: clip;
   }
 
   h1,

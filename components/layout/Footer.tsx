@@ -106,7 +106,22 @@ export default function Footer() {
           </p>
           <p className="flex items-center gap-2">
             <span className="size-1.5 rounded-full bg-well-500" aria-hidden="true" />
-            Made with care in Puducherry, India
+            <span>
+              Made by{" "}
+              <a
+                href="https://rooban.info"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group/rvn inline-flex items-center gap-0.5 font-semibold text-navy-800 underline decoration-gold-400 decoration-2 underline-offset-4 transition-colors hover:text-well-700"
+              >
+                RVN
+                <ArrowUpRight
+                  className="size-3.5 transition-transform duration-300 group-hover/rvn:-translate-y-0.5 group-hover/rvn:translate-x-0.5"
+                  strokeWidth={2.4}
+                />
+              </a>{" "}
+              in Puducherry, India
+            </span>
           </p>
         </div>
       </div>
