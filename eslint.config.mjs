@@ -15,6 +15,8 @@ const eslintConfig = [
     ignores: [
       "node_modules/**",
       ".next/**",
+      // Scratch dist dir used by NEXT_DIST_DIR builds (see next.config.ts)
+      ".next-verify/**",
       "out/**",
       "build/**",
       "next-env.d.ts",

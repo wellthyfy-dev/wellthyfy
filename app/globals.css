@@ -1,26 +1,331 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ==========================================================================
+   Wellthyfy Design Tokens — derived from the brand logo
+   Green (health) · Blue (trust/wealth) · Gold (happiness/growth)
+   ========================================================================== */
+@theme {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, "Times New Roman", serif;
+
+  /* Green — Health */
+  --color-well-50: #f1f9f4;
+  --color-well-100: #dcf1e4;
+  --color-well-200: #b9e3ca;
+  --color-well-300: #8dd1a9;
+  --color-well-400: #65b741;
+  --color-well-500: #45a06b;
+  --color-well-600: #2e8b57;
+  --color-well-700: #246e45;
+  --color-well-800: #1c5636;
+  --color-well-900: #14402a;
+
+  /* Blue — Wealth & Trust */
+  --color-navy-50: #eff6ff;
+  --color-navy-100: #dbeafe;
+  --color-navy-200: #bfdbfe;
+  --color-navy-300: #7fb6f0;
+  --color-navy-400: #4fa0ec;
+  --color-navy-500: #1e88e5;
+  --color-navy-600: #0f66c4;
+  --color-navy-700: #0a4d9d;
+  --color-navy-800: #083c79;
+  --color-navy-900: #062c58;
+  --color-navy-950: #04203f;
+
+  /* Gold — Happiness */
+  --color-gold-50: #fef9ec;
+  --color-gold-100: #fcf0cd;
+  --color-gold-200: #f9e29b;
+  --color-gold-300: #f6d269;
+  --color-gold-400: #f4c542;
+  --color-gold-500: #e4ae28;
+  --color-gold-600: #d4a017;
+  --color-gold-700: #a87b12;
+  --color-gold-800: #7c5a0f;
+  --color-gold-900: #553d0b;
+
+  /* Neutrals */
+  --color-ink: #0e2233;
+  --color-ink-soft: #44576a;
+  --color-cream: #fbfdfb;
+
+  --shadow-soft: 0 1px 2px rgb(14 34 51 / 0.04), 0 8px 24px -8px rgb(14 34 51 / 0.1);
+  --shadow-lift: 0 2px 4px rgb(14 34 51 / 0.05), 0 24px 48px -16px rgb(14 34 51 / 0.18);
+  --shadow-glow-green: 0 18px 40px -18px rgb(46 139 87 / 0.55);
+  --shadow-glow-navy: 0 18px 40px -18px rgb(10 77 157 / 0.55);
+  --shadow-glow-gold: 0 18px 40px -18px rgb(212 160 23 / 0.55);
+
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-float-slow: float 11s ease-in-out infinite;
+  --animate-drift: drift 18s linear infinite;
+  --animate-spin-slow: spin 26s linear infinite;
+  --animate-shimmer: shimmer 2.6s linear infinite;
+  --animate-pulse-ring: pulse-ring 3.2s ease-out infinite;
+  --animate-grow: grow 2.4s ease-in-out infinite;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-18px) rotate(3deg);
+  }
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@keyframes drift {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(24px, -30px, 0) rotate(180deg);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(360deg);
+  }
+}
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.7;
+  }
+  80% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+@keyframes grow {
+  0%,
+  100% {
+    transform: scaleY(0.72);
+  }
+  50% {
+    transform: scaleY(1);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ==========================================================================
+   Base
+   ========================================================================== */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 7.5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-cream);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    color: var(--color-ink);
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background-color: var(--color-well-200);
+    color: var(--color-well-900);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-navy-600);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  /* Themed scrollbar */
+  ::-webkit-scrollbar {
+    width: 11px;
+    height: 11px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-well-50);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--color-well-600), var(--color-navy-700));
+    border-radius: 99px;
+    border: 3px solid var(--color-well-50);
+  }
+}
+
+/* ==========================================================================
+   Utilities
+   ========================================================================== */
+@utility container-page {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 80rem;
+  padding-inline: 1.25rem;
+  @media (width >= 40rem) {
+    padding-inline: 2rem;
+  }
+  @media (width >= 64rem) {
+    padding-inline: 2.5rem;
+  }
+}
+
+@utility text-gradient-brand {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-well-600) 0%,
+    var(--color-well-400) 22%,
+    var(--color-navy-700) 58%,
+    var(--color-gold-600) 92%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+@utility text-gradient-gold {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-gold-400),
+    var(--color-gold-600) 60%,
+    var(--color-gold-300)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+@utility bg-brand-gradient {
+  background-image: linear-gradient(
+    115deg,
+    var(--color-well-600) 0%,
+    var(--color-well-500) 28%,
+    var(--color-navy-700) 68%,
+    var(--color-navy-800) 100%
+  );
+}
+
+@utility glass-card {
+  background-color: rgb(255 255 255 / 0.1);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  border: 1px solid rgb(255 255 255 / 0.22);
+}
+
+@utility surface-card {
+  background-color: #fff;
+  border: 1px solid rgb(14 34 51 / 0.07);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Grain overlay for premium depth */
+@utility grain {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.5;
+    mix-blend-mode: soft-light;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.38'/%3E%3C/svg%3E");
+  }
+}
+
+/* Animated gradient border that reveals on hover */
+@utility ring-brand-hover {
+  position: relative;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      var(--color-well-400),
+      var(--color-navy-500),
+      var(--color-gold-400)
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  &:hover::before {
+    opacity: 1;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Decorative scatter (AnimatedBackground, CTA sparks)
+
+   Randomised values are passed as CSS custom properties, never as raw inline
+   width/transform/animation. The browser re-serialises inline numbers and
+   expands the `animation` shorthand into longhands, which React reads back as
+   a hydration mismatch; custom properties are stored verbatim, so server and
+   client markup agree exactly.
+   -------------------------------------------------------------------------- */
+.wf-leaf {
+  width: var(--wf-size);
+  height: var(--wf-size);
+  transform: rotate(var(--wf-rot));
+  animation: float var(--wf-dur) ease-in-out var(--wf-delay) infinite;
+}
+
+.wf-particle {
+  width: var(--wf-size);
+  height: var(--wf-size);
+  animation: drift var(--wf-dur) linear var(--wf-delay) infinite;
+}
+
+.wf-spark {
+  width: var(--wf-size);
+  height: var(--wf-size);
+  animation: float var(--wf-dur) ease-in-out var(--wf-delay) infinite;
+}
+
+/* ==========================================================================
+   Accessibility — honour reduced motion everywhere
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
