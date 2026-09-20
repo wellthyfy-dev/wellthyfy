@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import MetaPixel from "@/components/analytics/MetaPixel";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
@@ -139,6 +140,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Footer />
         <ScrollToTop />
         <GoogleAnalytics />
+        <MetaPixel />
       </body>
     </html>
   );

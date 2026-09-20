@@ -37,17 +37,17 @@ npm run lint    # eslint
 
 ```
 app/
-  layout.tsx        metadata, fonts, JSON-LD, chrome (loader, nav, footer, scroll-to-top, GA4)
+  layout.tsx        metadata, fonts, JSON-LD, chrome (loader, nav, footer,
+                    scroll-to-top, analytics)
   page.tsx          section composition
   globals.css       design tokens, keyframes, custom utilities
   api/contact/      Resend-backed enquiry endpoint
   sitemap.ts        robots.ts
 components/
-  analytics/        GoogleAnalytics (GA4 gtag.js)
+  analytics/        GoogleAnalytics (GA4 gtag.js), MetaPixel (Meta/Facebook)
   layout/           Navbar, Footer, SocialLinks
-  sections/         Hero, About, Services, Courses, MorningClub,
-                    WhyWellthyfy, WhoCanJoin, Testimonials,
-                    CTABanner, Contact, CourseCover
+  sections/         Hero, About, Services, Courses, WhyWellthyfy,
+                    WhoCanJoin, Testimonials, CTABanner, Contact, CourseCover
   ui/               Logo, Icon, Reveal, SectionHeading,
                     AnimatedBackground, LoadingScreen, ScrollToTop
 lib/
@@ -128,12 +128,22 @@ per-instance — front it with a real limiter if the form attracts bots.
 
 ## Analytics
 
-GA4 (`G-P5HSPELBTT`) loads from `components/analytics/GoogleAnalytics.tsx` via `next/script`
-with `strategy="afterInteractive"`, so it never blocks first paint.
+Two tags, both loaded with `next/script` at `strategy="afterInteractive"` so neither blocks
+first paint:
 
-It is **skipped when `NODE_ENV !== "production"`**, so local development does not send hits to
-the property. That means you will not see the tag on `localhost:3000` — verify on the
-deployed site, or delete the `NODE_ENV` guard in that file to test through GA4 DebugView.
+| Tag | ID | Component |
+| --- | --- | --- |
+| Google Analytics 4 | `G-P5HSPELBTT` | `components/analytics/GoogleAnalytics.tsx` |
+| Meta Pixel | `1423221196618843` | `components/analytics/MetaPixel.tsx` |
+
+Both are **skipped when `NODE_ENV !== "production"`**, so local development does not send hits
+to the property or the pixel. You will not see either tag on `localhost:3000` — verify on the
+deployed site, or delete the `NODE_ENV` guard in the relevant file to test through GA4
+DebugView or the Meta Pixel Helper.
+
+The Meta Pixel keeps its `<noscript>` tracking image for visitors without JavaScript. To fire
+a conversion elsewhere in the app, call `window.fbq?.("track", "Lead")` — the `?.` matters,
+since `fbq` is undefined in development.
 
 ## Hydration and randomised decoration
 

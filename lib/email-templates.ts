@@ -110,7 +110,7 @@ export function confirmationEmail(e: Enquiry) {
       <div style="background:linear-gradient(120deg,#14402a,${NAVY});border-radius:14px;padding:22px 24px;color:#fff;">
         <p style="margin:0 0 6px;font-size:17px;font-weight:700;">Live Healthy. Live Wealthy. Live Happy.</p>
         <p style="margin:0;font-size:13px;line-height:1.6;color:rgba(255,255,255,.82);">
-          Ten minutes of yoga, ten of motivation, ten of financial learning — every morning with the Daily Morning Club.
+          Wellness programmes, practical money skills and courses that turn learning into real opportunity.
         </p>
       </div>
     </td></tr>

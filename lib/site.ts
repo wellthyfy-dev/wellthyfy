@@ -174,35 +174,6 @@ export const courses: {
   },
 ];
 
-export const morningClub: {
-  minutes: string;
-  title: string;
-  accent: Accent;
-  icon: string;
-  description: string;
-}[] = [
-  {
-    minutes: "10",
-    title: "Minutes Yoga",
-    accent: "green",
-    icon: "flower",
-    description: "Gentle asanas and breathwork to wake the body and steady the mind.",
-  },
-  {
-    minutes: "10",
-    title: "Minutes Motivation",
-    accent: "gold",
-    icon: "sun",
-    description: "A short, powerful reset that sets the tone for the entire day.",
-  },
-  {
-    minutes: "10",
-    title: "Minutes Financial Learning",
-    accent: "navy",
-    icon: "wallet",
-    description: "One practical money idea a day, compounding into real understanding.",
-  },
-];
 
 export const whyWellthyfy = [
   "Natural and trusted solutions",
@@ -261,7 +232,7 @@ export const audiences: {
 export const testimonials = [
   {
     quote:
-      "The Daily Morning Club changed my routine completely. Ten minutes of yoga became the anchor of my whole day, and my energy has never been better.",
+      "The wellness programme changed my routine completely. Ten minutes of yoga each morning became the anchor of my whole day, and my energy has never been better.",
     name: "Priya Raman",
     role: "Homemaker, Puducherry",
     initials: "PR",

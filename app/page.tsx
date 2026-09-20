@@ -3,7 +3,6 @@ import Contact from "@/components/sections/Contact";
 import Courses from "@/components/sections/Courses";
 import CTABanner from "@/components/sections/CTABanner";
 import Hero from "@/components/sections/Hero";
-import MorningClub from "@/components/sections/MorningClub";
 import Services from "@/components/sections/Services";
 import Testimonials from "@/components/sections/Testimonials";
 import WhoCanJoin from "@/components/sections/WhoCanJoin";
@@ -16,7 +15,6 @@ export default function HomePage() {
       <About />
       <Services />
       <Courses />
-      <MorningClub />
       <WhyWellthyfy />
       <WhoCanJoin />
       <Testimonials />

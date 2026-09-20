@@ -149,7 +149,6 @@ function ContactForm() {
                 {c.title}
               </option>
             ))}
-            <option value="Daily Morning Club">Daily Morning Club</option>
             <option value="Wellness Programs">Wellness Programs</option>
             <option value="Financial Education">Financial Education</option>
             <option value="Partnership">Partnership Opportunity</option>
