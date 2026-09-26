@@ -14,6 +14,7 @@ import {
 import { useState, type FormEvent } from "react";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { trackLeadConversion } from "@/lib/gtag";
 import { courses, siteConfig } from "@/lib/site";
 
 const MAPS_QUERY = encodeURIComponent(`${siteConfig.legalName}, ${siteConfig.address.full}`);
@@ -67,6 +68,7 @@ function ContactForm() {
 
       setStatus("sent");
       form.reset();
+      trackLeadConversion();
     } catch {
       setError("Could not reach the server. Please check your connection and try again.");
       setStatus("idle");

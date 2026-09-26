@@ -56,6 +56,7 @@ lib/
   accents.ts        green/navy/gold class maps
   gsap.ts           ScrollTrigger registration + helpers
   email-templates.ts  branded HTML for both enquiry emails
+  gtag.ts             Google tag IDs + lead-conversion helper
   privacy-policy.ts   Privacy Policy copy (legal text — edit here)
 assets/brand/       original full-resolution source art (not served)
 ```
@@ -135,8 +136,17 @@ first paint:
 
 | Tag | ID | Component |
 | --- | --- | --- |
-| Google Analytics 4 | `G-P5HSPELBTT` | `components/analytics/GoogleAnalytics.tsx` |
+| Google Analytics 4 | `G-P5HSPELBTT` | `components/analytics/GoogleTags.tsx` |
+| Google Ads | `AW-18476470426` | `components/analytics/GoogleTags.tsx` |
 | Meta Pixel | `1423221196618843` | `components/analytics/MetaPixel.tsx` |
+
+GA4 and Google Ads share one gtag.js load with a `config` call each — pasting Google's two
+snippets verbatim would download the library twice.
+
+**The Ads lead conversion** (`AW-18476470426/IrkkCNvKuIYdEJqhoupE`, value 1.0 INR) is *not*
+fired on page load. Google supplies it as an event snippet for a thank-you page; this site
+has none, so it lives in `trackLeadConversion()` in `lib/gtag.ts` and runs only after
+`POST /api/contact` succeeds. Firing it at page level would count every visitor as a lead.
 
 Both are **skipped when `NODE_ENV !== "production"`**, so local development does not send hits
 to the property or the pixel. You will not see either tag on `localhost:3000` — verify on the
