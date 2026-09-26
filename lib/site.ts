@@ -19,12 +19,12 @@ export const siteConfig = {
 export type Accent = "green" | "navy" | "gold";
 
 export const navLinks = [
-  { label: "Home", href: "#home" },
-  { label: "About", href: "#about" },
-  { label: "Services", href: "#services" },
-  { label: "Courses", href: "#courses" },
-  { label: "Why Wellthyfy", href: "#why-wellthyfy" },
-  { label: "Contact", href: "#contact" },
+  { label: "Home", href: "/#home" },
+  { label: "About", href: "/#about" },
+  { label: "Services", href: "/#services" },
+  { label: "Courses", href: "/#courses" },
+  { label: "Why Wellthyfy", href: "/#why-wellthyfy" },
+  { label: "Contact", href: "/#contact" },
 ];
 
 export const pillars: {

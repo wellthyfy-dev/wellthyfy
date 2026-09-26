@@ -7,7 +7,7 @@ import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/lib/accents";
 import { navLinks, siteConfig } from "@/lib/site";
 
-const SECTION_IDS = navLinks.map((l) => l.href.replace("#", ""));
+const SECTION_IDS = navLinks.map((l) => l.href.split("#")[1]);
 
 /** Login buttons are placeholders until the portals ship. */
 function ComingSoonButton({
@@ -49,7 +49,7 @@ function ComingSoonButton({
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState("home");
+  const [active, setActive] = useState("");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -69,10 +69,16 @@ export default function Navbar() {
       },
       { rootMargin: "-45% 0px -50% 0px", threshold: [0, 0.25, 0.5, 1] },
     );
+    let observed = 0;
     SECTION_IDS.forEach((id) => {
       const el = document.getElementById(id);
-      if (el) observer.observe(el);
+      if (el) {
+        observer.observe(el);
+        observed += 1;
+      }
     });
+    // No sections on this route — nothing should read as the current page.
+    if (observed === 0) setActive("");
     return () => observer.disconnect();
   }, []);
 
@@ -105,7 +111,7 @@ export default function Navbar() {
           {/* Centre links */}
           <ul className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 xl:flex">
             {navLinks.map((link) => {
-              const id = link.href.replace("#", "");
+              const id = link.href.split("#")[1];
               const isActive = active === id;
               return (
                 <li key={link.href}>

@@ -40,6 +40,7 @@ app/
   layout.tsx        metadata, fonts, JSON-LD, chrome (loader, nav, footer,
                     scroll-to-top, analytics)
   page.tsx          section composition
+  privacy-policy/   Privacy Policy route
   globals.css       design tokens, keyframes, custom utilities
   api/contact/      Resend-backed enquiry endpoint
   sitemap.ts        robots.ts
@@ -55,6 +56,7 @@ lib/
   accents.ts        green/navy/gold class maps
   gsap.ts           ScrollTrigger registration + helpers
   email-templates.ts  branded HTML for both enquiry emails
+  privacy-policy.ts   Privacy Policy copy (legal text — edit here)
 assets/brand/       original full-resolution source art (not served)
 ```
 
@@ -144,6 +146,23 @@ DebugView or the Meta Pixel Helper.
 The Meta Pixel keeps its `<noscript>` tracking image for visitors without JavaScript. To fire
 a conversion elsewhere in the app, call `window.fbq?.("track", "Lead")` — the `?.` matters,
 since `fbq` is undefined in development.
+
+## Privacy Policy
+
+The page lives at `/privacy-policy`; its copy is structured data in
+`lib/privacy-policy.ts`, so edit the wording there rather than in the component. Bump
+`policyMeta.effectiveDate` whenever the text changes materially.
+
+Two details in `policyMeta` deliberately differ from `siteConfig`, because the policy states
+the registered office and the privacy contact rather than the marketing details:
+
+| | Privacy Policy | Rest of the site |
+| --- | --- | --- |
+| Contact email | `admin@wellthyfy.in` | `info@wellthyfy.in` |
+| Address | includes Vazhuthaavur Road | omits it |
+
+If those should match, change `policyMeta` (and/or `siteConfig.address`) — they are not
+derived from each other.
 
 ## Hydration and randomised decoration
 

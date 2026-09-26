@@ -1,4 +1,5 @@
 import { ArrowUpRight, Globe, Mail, MapPin, Phone } from "lucide-react";
+import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
 import SocialLinks from "./SocialLinks";
 import { navLinks, siteConfig } from "@/lib/site";
@@ -101,8 +102,19 @@ export default function Footer() {
         </div>
 
         <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-navy-900/8 pt-7 text-sm text-ink-soft sm:flex-row">
-          <p>
-            © {year} {siteConfig.legalName} All rights reserved.
+          <p className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-center sm:justify-start sm:text-left">
+            <span>
+              © {year} {siteConfig.legalName} All rights reserved.
+            </span>
+            <span className="hidden text-navy-900/25 sm:inline" aria-hidden="true">
+              ·
+            </span>
+            <Link
+              href="/privacy-policy"
+              className="font-medium text-navy-800 underline decoration-well-400 decoration-2 underline-offset-4 transition-colors hover:text-well-700"
+            >
+              Privacy Policy
+            </Link>
           </p>
           <p className="flex items-center gap-2">
             <span className="size-1.5 rounded-full bg-well-500" aria-hidden="true" />
