@@ -14,6 +14,7 @@ import {
 import { useState, type FormEvent } from "react";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { coursePillars } from "@/lib/courses";
 import { trackLeadConversion } from "@/lib/gtag";
 import { courses, siteConfig } from "@/lib/site";
 
@@ -146,14 +147,25 @@ function ContactForm() {
             <option value="" disabled>
               Choose an option
             </option>
-            {courses.map((c) => (
-              <option key={c.id} value={c.title}>
-                {c.title}
-              </option>
-            ))}
-            <option value="Wellness Programs">Wellness Programs</option>
-            <option value="Financial Education">Financial Education</option>
-            <option value="Partnership">Partnership Opportunity</option>
+            <optgroup label="Course tracks">
+              {coursePillars.map((p) => (
+                <option key={p.id} value={`${p.title} Courses`}>
+                  {p.title} Courses
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Professional training">
+              {courses.map((c) => (
+                <option key={c.id} value={c.title}>
+                  {c.title}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Other">
+              <option value="Wellness Programs">Wellness Programs</option>
+              <option value="Financial Education">Financial Education</option>
+              <option value="Partnership">Partnership Opportunity</option>
+            </optgroup>
           </select>
         </div>
 

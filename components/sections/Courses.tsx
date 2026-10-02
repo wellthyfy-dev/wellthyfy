@@ -1,11 +1,12 @@
 "use client";
 
-import { ArrowRight, Check, Clock, Sparkles } from "lucide-react";
+import { ArrowRight, GraduationCap } from "lucide-react";
+import Link from "next/link";
+import { Icon } from "@/components/ui/Icon";
 import { StaggerGroup, StaggerItem } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { accentStyles, cn } from "@/lib/accents";
-import { courses } from "@/lib/site";
-import CourseCover from "./CourseCover";
+import { CATALOGUE_COUNT, coursePillars, coursesForPillar } from "@/lib/courses";
 
 export default function Courses() {
   return (
@@ -15,104 +16,96 @@ export default function Courses() {
 
       <div className="container-page">
         <SectionHeading
-          eyebrow="Featured Courses"
-          title="Featured"
-          highlight="Courses"
-          description="Learn New Skills. Build Confidence. Create Opportunities."
+          eyebrow="Wellthyfy Courses"
+          title="Learn. Apply. Grow."
+          highlight="Thrive."
+          description={`${CATALOGUE_COUNT} courses across three pillars — wellness, wealth and happiness. Start wherever you need it most.`}
         />
 
         <StaggerGroup className="mt-14 grid gap-7 lg:mt-16 lg:grid-cols-3">
-          {courses.map((course) => {
-            const a = accentStyles[course.accent];
-            const isPrimary = course.cta === "Enroll Now";
+          {coursePillars.map((pillar) => {
+            const a = accentStyles[pillar.accent];
+            const count = coursesForPillar(pillar.id).length;
 
             return (
-              <StaggerItem key={course.id} className="h-full">
-                <article className="group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-navy-900/8 bg-white shadow-soft transition-all duration-500 hover:-translate-y-2.5 hover:shadow-lift">
-                  {/* Cover */}
-                  <div className="relative overflow-hidden">
-                    <div className="transition-transform duration-700 group-hover:scale-[1.06]">
-                      <CourseCover id={course.id} accent={course.accent} />
-                    </div>
-
-                    <span className="absolute left-5 top-5 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-navy-800 shadow-sm backdrop-blur-sm">
-                      <Sparkles className={cn("size-3.5", a.softText)} strokeWidth={2.6} />
-                      {course.badge}
+              <StaggerItem key={pillar.id} className="h-full">
+                <Link
+                  href={`/courses#${pillar.id}`}
+                  className="group flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-navy-900/8 bg-white shadow-soft transition-all duration-500 hover:-translate-y-2.5 hover:shadow-lift"
+                >
+                  {/* Header band */}
+                  <div className={cn("relative overflow-hidden px-7 py-8", a.iconTile)}>
+                    <div
+                      className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_1px_1px,#fff_1px,transparent_0)] [background-size:16px_16px]"
+                      aria-hidden="true"
+                    />
+                    <span className="relative grid size-14 place-items-center rounded-2xl bg-white/20 text-white backdrop-blur-sm transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6">
+                      <Icon name={pillar.icon} className="size-7" />
                     </span>
-
-                    <span className="absolute bottom-5 left-5 inline-flex items-center gap-1.5 text-[11px] font-semibold text-white/90">
-                      <Clock className="size-3.5" strokeWidth={2.4} />
-                      {course.duration}
-                    </span>
+                    <h3 className="relative mt-5 font-display text-3xl font-semibold text-white">
+                      {pillar.title}
+                    </h3>
+                    <p className="relative mt-2 text-sm font-medium text-white/85">
+                      {pillar.tagline}
+                    </p>
                   </div>
 
                   {/* Body */}
                   <div className="flex flex-1 flex-col p-7">
-                    <h3 className="text-[1.35rem] font-semibold leading-snug">{course.title}</h3>
-                    <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-                      {course.description}
+                    <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-navy-700/60">
+                      <GraduationCap className={cn("size-4", a.softText)} strokeWidth={2.2} />
+                      {count} courses
                     </p>
 
-                    <p className="mt-7 text-[11px] font-semibold uppercase tracking-[0.18em] text-navy-700/60">
-                      What you will learn
-                    </p>
-                    <ul className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                      {course.highlights.map((h) => (
-                        <li key={h} className="flex items-start gap-2.5 text-[0.9rem] text-ink">
-                          <span
-                            className={cn(
-                              "mt-0.5 grid size-4.5 shrink-0 place-items-center rounded-full",
-                              a.softBg,
-                            )}
-                          >
-                            <Check className={cn("size-2.5", a.text)} strokeWidth={3.5} />
-                          </span>
-                          {h}
+                    <ul className="mt-4 flex flex-wrap gap-2">
+                      {pillar.topics.map((topic) => (
+                        <li
+                          key={topic}
+                          className={cn(
+                            "rounded-full border px-3 py-1.5 text-xs font-medium",
+                            a.softBg,
+                            a.border,
+                            a.text,
+                          )}
+                        >
+                          {topic}
                         </li>
                       ))}
                     </ul>
 
-                    <div className="mt-auto pt-8">
-                      <a
-                        href="#contact"
-                        className={cn(
-                          "group/cta inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold transition-all duration-300",
-                          isPrimary
-                            ? "bg-gradient-to-r from-gold-500 to-gold-600 text-white shadow-glow-gold hover:-translate-y-0.5 hover:shadow-lift"
-                            : cn(
-                                "border bg-white text-navy-800 hover:-translate-y-0.5 hover:shadow-soft",
-                                a.border,
-                              ),
-                        )}
-                      >
-                        {course.cta}
-                        <ArrowRight className="size-4 transition-transform duration-300 group-hover/cta:translate-x-1" />
-                      </a>
-                    </div>
+                    <span className="mt-auto inline-flex items-center gap-2 pt-8 text-sm font-semibold text-navy-800 transition-colors group-hover:text-well-700">
+                      {pillar.cta}
+                      <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    </span>
                   </div>
 
                   <span
                     className={cn(
-                      "absolute inset-x-0 bottom-0 h-1 origin-left scale-x-0 transition-transform duration-500 group-hover:scale-x-100",
+                      "h-1 origin-left scale-x-0 transition-transform duration-500 group-hover:scale-x-100",
                       a.bar,
                     )}
                   />
-                </article>
+                </Link>
               </StaggerItem>
             );
           })}
         </StaggerGroup>
 
-        <p className="mt-12 text-center text-sm text-ink-soft">
-          Not sure which course fits you?{" "}
-          <a
-            href="#contact"
-            className="font-semibold text-navy-800 underline decoration-gold-400 decoration-2 underline-offset-4 transition-colors hover:text-well-700"
+        {/* Core message */}
+        <div className="mx-auto mt-14 max-w-2xl text-center">
+          <p className="font-display text-xl font-medium leading-relaxed text-navy-800 sm:text-2xl">
+            We do not just teach courses. We help people build{" "}
+            <span className="text-gradient-brand">better habits, better knowledge</span> and better
+            lives.
+          </p>
+          <Link
+            href="/courses"
+            className="group mt-8 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-well-600 via-well-500 to-navy-700 px-7 py-4 text-sm font-semibold text-white shadow-glow-green transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift"
           >
-            Talk to our team
-          </a>{" "}
-          — we will help you choose.
-        </p>
+            View all {CATALOGUE_COUNT} courses
+            <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+          </Link>
+        </div>
       </div>
     </section>
   );

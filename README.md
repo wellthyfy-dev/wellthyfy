@@ -40,6 +40,7 @@ app/
   layout.tsx        metadata, fonts, JSON-LD, chrome (loader, nav, footer,
                     scroll-to-top, analytics)
   page.tsx          section composition
+  courses/          full course catalogue route
   privacy-policy/   Privacy Policy route
   globals.css       design tokens, keyframes, custom utilities
   api/contact/      Resend-backed enquiry endpoint
@@ -57,6 +58,7 @@ lib/
   gsap.ts           ScrollTrigger registration + helpers
   email-templates.ts  branded HTML for both enquiry emails
   gtag.ts             Google tag IDs + lead-conversion helper
+  courses.ts          course catalogue: 3 pillars, 22 courses
   privacy-policy.ts   Privacy Policy copy (legal text — edit here)
 assets/brand/       original full-resolution source art (not served)
 ```
@@ -156,6 +158,25 @@ DebugView or the Meta Pixel Helper.
 The Meta Pixel keeps its `<noscript>` tracking image for visitors without JavaScript. To fire
 a conversion elsewhere in the app, call `window.fbq?.("track", "Lead")` — the `?.` matters,
 since `fbq` is undefined in development.
+
+## Courses
+
+The catalogue lives in `lib/courses.ts`: three pillars (Wellness/green, Wealth/navy,
+Happiness/gold — the same accents as the rest of the site) and 22 courses with their modules.
+
+It renders in two places:
+
+- **Homepage `#courses`** — a three-card teaser, one per pillar, linking to
+  `/courses#wellness` etc. Deliberately does not list all 22.
+- **`/courses`** — the full catalogue, grouped by pillar, plus a *Career skill courses*
+  group for the professional training (beautician, yoga instructor, digital marketing)
+  that still lives in `siteConfig`-adjacent `courses` in `lib/site.ts`.
+
+Course counts are derived (`CATALOGUE_COUNT`, `coursesForPillar`), so adding a course to
+`lib/courses.ts` updates the teaser, the page, the jump links and the copy automatically.
+
+The *Investing Awareness for Beginners* course carries a `note` field rendered as a visible
+disclaimer — keep it if you keep the course.
 
 ## Privacy Policy
 
