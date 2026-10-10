@@ -2,47 +2,40 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, Phone, X } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/ui/Logo";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/accents";
 import { navLinks, siteConfig } from "@/lib/site";
 
 const SECTION_IDS = navLinks.map((l) => l.href.split("#")[1]);
 
-/** Login buttons are placeholders until the portals ship. */
-function ComingSoonButton({
+/** Auth entry point. Becomes a dashboard link once signed in. */
+function AuthButton({
   label,
+  href,
   variant,
   className,
 }: {
   label: string;
+  href: string;
   variant: "ghost" | "solid";
   className?: string;
 }) {
   return (
-    <span className="group/tip relative inline-flex">
-      <a
-        href="#"
-        aria-disabled="true"
-        onClick={(e) => e.preventDefault()}
-        className={cn(
-          "inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition-all duration-300 focus-visible:outline-navy-700",
-          variant === "ghost"
-            ? "border border-navy-200 bg-white/70 text-navy-800 hover:border-navy-300 hover:bg-white hover:shadow-sm"
-            : "bg-gradient-to-r from-well-600 to-navy-700 text-white shadow-glow-green hover:from-well-500 hover:to-navy-600 hover:shadow-lift",
-          className,
-        )}
-      >
-        {label}
-      </a>
-      <span
-        role="tooltip"
-        className="pointer-events-none absolute left-1/2 top-full z-50 mt-2.5 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-lg bg-navy-900 px-2.5 py-1.5 text-[11px] font-medium text-white opacity-0 shadow-lift transition-all duration-200 group-hover/tip:translate-y-0 group-hover/tip:opacity-100 group-focus-within/tip:translate-y-0 group-focus-within/tip:opacity-100"
-      >
-        <span className="absolute -top-1 left-1/2 size-2 -translate-x-1/2 rotate-45 bg-navy-900" />
-        Coming Soon
-      </span>
-    </span>
+    <Link
+      href={href}
+      className={cn(
+        "inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition-all duration-300 focus-visible:outline-navy-700",
+        variant === "ghost"
+          ? "border border-navy-200 bg-white/70 text-navy-800 hover:border-navy-300 hover:bg-white hover:shadow-sm"
+          : "bg-gradient-to-r from-well-600 to-navy-700 text-white shadow-glow-green hover:from-well-500 hover:to-navy-600 hover:shadow-lift",
+        className,
+      )}
+    >
+      {label}
+    </Link>
   );
 }
 
@@ -50,6 +43,24 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("");
+  const [signedIn, setSignedIn] = useState(false);
+
+  // Read auth in the browser rather than in the layout: touching cookies
+  // server-side would make every marketing page render dynamically.
+  useEffect(() => {
+    const supabase = createClient();
+    let alive = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (alive) setSignedIn(Boolean(data.user));
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSignedIn(Boolean(session?.user));
+    });
+    return () => {
+      alive = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -139,8 +150,14 @@ export default function Navbar() {
 
           {/* Right actions */}
           <div className="hidden items-center gap-2.5 lg:flex">
-            <ComingSoonButton label="Student Login" variant="ghost" />
-            <ComingSoonButton label="Faculty Login" variant="solid" />
+            {signedIn ? (
+              <AuthButton label="My dashboard" href="/dashboard" variant="solid" />
+            ) : (
+              <>
+                <AuthButton label="Student Login" href="/login?role=student" variant="ghost" />
+                <AuthButton label="Faculty Login" href="/login?role=faculty" variant="solid" />
+              </>
+            )}
           </div>
 
           <button
@@ -196,8 +213,29 @@ export default function Navbar() {
               </ul>
 
               <div className="mt-4 grid gap-2.5 border-t border-navy-900/8 pt-4">
-                <ComingSoonButton label="Student Login" variant="ghost" className="w-full py-3" />
-                <ComingSoonButton label="Faculty Login" variant="solid" className="w-full py-3" />
+                {signedIn ? (
+                  <AuthButton
+                    label="My dashboard"
+                    href="/dashboard"
+                    variant="solid"
+                    className="w-full py-3"
+                  />
+                ) : (
+                  <>
+                    <AuthButton
+                      label="Student Login"
+                      href="/login?role=student"
+                      variant="ghost"
+                      className="w-full py-3"
+                    />
+                    <AuthButton
+                      label="Faculty Login"
+                      href="/login?role=faculty"
+                      variant="solid"
+                      className="w-full py-3"
+                    />
+                  </>
+                )}
                 <a
                   href={siteConfig.phoneHref}
                   className="mt-1 flex items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-semibold text-navy-800 transition-colors hover:text-well-700"

@@ -10,6 +10,17 @@ const nextConfig: NextConfig = {
    *   NEXT_DIST_DIR=.next-verify npm run build
    */
   distDir: process.env.NEXT_DIST_DIR || ".next",
+
+  images: {
+    remotePatterns: [
+      {
+        // Course banners live in the public `course-covers` Supabase bucket.
+        protocol: "https",
+        hostname: "asldprpmsegjdtyvuett.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

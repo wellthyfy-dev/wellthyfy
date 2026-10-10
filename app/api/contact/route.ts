@@ -33,11 +33,15 @@ function clean(value: unknown, max: number) {
 
 export async function POST(request: Request) {
   const apiKey = process.env.RESEND_API_KEY;
-  const to = process.env.CONTACT_TO_EMAIL;
+  // CONTACT_TO_EMAIL may list several addresses, comma separated.
+  const recipients = (process.env.CONTACT_TO_EMAIL ?? "")
+    .split(",")
+    .map((address) => address.trim())
+    .filter(Boolean);
   // Must be on a Resend-verified domain (info.wellthyfy.in).
   const from = process.env.CONTACT_FROM_EMAIL ?? "Wellthyfy <hello@info.wellthyfy.in>";
 
-  if (!apiKey || !to) {
+  if (!apiKey || recipients.length === 0) {
     console.error("[contact] RESEND_API_KEY or CONTACT_TO_EMAIL is not configured");
     return NextResponse.json(
       { ok: false, error: "Email is not configured on the server." },
@@ -99,7 +103,7 @@ export async function POST(request: Request) {
   const [teamResult, visitorResult] = await Promise.allSettled([
     resend.emails.send({
       from,
-      to,
+      to: recipients,
       replyTo: enquiry.email,
       subject: forTeam.subject,
       html: forTeam.html,
@@ -109,7 +113,7 @@ export async function POST(request: Request) {
       from,
       to: enquiry.email,
       // The sender is a no-reply-style address, so send replies to the team.
-      replyTo: to,
+      replyTo: recipients,
       subject: forVisitor.subject,
       html: forVisitor.html,
       text: forVisitor.text,

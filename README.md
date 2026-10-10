@@ -40,7 +40,11 @@ app/
   layout.tsx        metadata, fonts, JSON-LD, chrome (loader, nav, footer,
                     scroll-to-top, analytics)
   page.tsx          section composition
-  courses/          full course catalogue route
+  courses/          catalogue + /courses/[slug] detail & enrolment
+  login/ signup/    auth entry points (?role=student|faculty)
+  onboarding/       profile completion (contact details + Aadhaar images)
+  dashboard/        role router -> /dashboard/faculty | /dashboard/student
+  auth/             Supabase callback + signout routes
   privacy-policy/   Privacy Policy route
   globals.css       design tokens, keyframes, custom utilities
   api/contact/      Resend-backed enquiry endpoint
@@ -58,9 +62,12 @@ lib/
   gsap.ts           ScrollTrigger registration + helpers
   email-templates.ts  branded HTML for both enquiry emails
   gtag.ts             Google tag IDs + lead-conversion helper
-  courses.ts          course catalogue: 3 pillars, 22 courses
+  courses.ts          static catalogue: 3 pillars, 22 courses
+  platform.ts         DB types, categories, modes, UPI link helper
+  supabase/           browser / server / public clients + auth guard
   privacy-policy.ts   Privacy Policy copy (legal text — edit here)
 assets/brand/       original full-resolution source art (not served)
+supabase/migrations/ SQL schema (already applied to the project)
 ```
 
 ## Brand tokens
@@ -94,6 +101,29 @@ These are deliberately stubbed:
    `assets/brand/` if the sources change.
 4. **Testimonials** — dummy content, as specified.
 
+## The header logo
+
+`public/logo-full.png` is a **stacked** lockup — emblem over wordmark over tagline. At a
+header height of 80px the whole stack is only ~82px wide, which renders "LIFESTYLE
+VENTURES" and the tagline at four or five pixels tall.
+
+So `components/ui/Logo.tsx` composes a **horizontal** lockup from two crops of the
+full-resolution source (`assets/brand/logo-original.png`, 4366x4278 after trim):
+
+| Asset | Crop | Shipped |
+| --- | --- | --- |
+| `public/logo-mark.webp` | emblem, y 0-2455 | 512x512 |
+| `public/logo-wordmark.webp` | wordmark + LIFESTYLE VENTURES, y 2455-3570 | 900x230 |
+
+Regenerate the wordmark after replacing the source:
+
+```bash
+node -e "require('sharp')('assets/brand/logo-original.png').trim({threshold:1}).extract({left:0,top:2455,width:4366,height:1115}).trim({threshold:1}).resize({width:900}).webp({quality:92,alphaQuality:100}).toFile('public/logo-wordmark.webp')"
+```
+
+The lockup is ~254px wide at full size, so the header steps the emblem down 48 -> 64 -> 80px
+across breakpoints; at 390px the full lockup plus the menu button still fits.
+
 ## The About artwork
 
 `public/balance.webp` is the trimmed, resized (1100px) WebP build of
@@ -118,9 +148,12 @@ Configure via `.env.local` (copy `.env.example`):
 
 ```
 RESEND_API_KEY=re_...
-CONTACT_TO_EMAIL=promaxx2021@gmail.com
+CONTACT_TO_EMAIL=promaxx2021@gmail.com,info@wellthyfy.in
 CONTACT_FROM_EMAIL=Wellthyfy Lifestyle Ventures <hello@info.wellthyfy.in>
 ```
+
+`CONTACT_TO_EMAIL` accepts a **comma-separated list** — every address receives the enquiry,
+and all of them are set as reply-to on the visitor's confirmation.
 
 The sender must sit on a domain verified in Resend. **`info.wellthyfy.in` is verified**, so
 confirmations reach real visitors. Change only the local part (`hello@`, `noreply@`,
@@ -177,6 +210,99 @@ Course counts are derived (`CATALOGUE_COUNT`, `coursesForPillar`), so adding a c
 
 The *Investing Awareness for Beginners* course carries a `note` field rendered as a visible
 disclaimer — keep it if you keep the course.
+
+## Platform (Supabase)
+
+Faculty and students sign in with email + password. Project `asldprpmsegjdtyvuett`
+(ap-southeast-1). Schema lives in `supabase/migrations/0001_init.sql` and is **already
+applied** — re-running it is safe.
+
+### Tables
+
+| Table | Purpose |
+| --- | --- |
+| `profiles` | One row per auth user. Role, contact details, Aadhaar storage paths. |
+| `courses` | Faculty-authored courses. `status` gates public visibility. |
+| `orders` | Manual-UPI enrolments: amount, UTR, pending/verified/rejected. |
+
+### Security model
+
+Everything runs on the **anon key under Row Level Security**. The service_role key is not
+used anywhere in the app — if you add it later, keep it server-only.
+
+- `profiles` is **owner-only**. No user can read anyone else's phone, address or Aadhaar
+  paths, so course cards read a denormalised `faculty_name` (kept current by trigger).
+- `courses` are world-readable only when `status = 'published'`; drafts are visible to
+  their author alone. Only a profile with `role = 'faculty'` can insert.
+- `orders` are visible to the buyer and that course's faculty. A student **cannot** move
+  their own order to `verified` — only the faculty can.
+- Aadhaar images go to a **private** `kyc` bucket at `<user-id>/aadhaar-front.*`. The
+  storage policy keys on that first path segment, so a user can only touch their own files.
+
+### Flows
+
+1. Sign up at `/signup?role=faculty|student` → confirmation email → `/auth/callback`.
+   Password fields have a show/hide toggle; `/login` links to `/forgot-password`, which
+   emails a recovery link that lands on `/reset-password`. Those reset emails go through
+   the same Supabase sender, so they hit the rate limit too until SMTP is configured.
+2. `/onboarding` collects name, phone, WhatsApp, address and both Aadhaar images, then sets
+   `profile_completed`. Middleware keeps users here until it is done.
+3. Faculty create courses at `/dashboard/faculty/courses/new` (category → subcategory, with
+   a free-text **Other**, plus an optional banner image). Publishing makes them appear on
+   the homepage and `/courses`. Each row has an **Edit** button →
+   `/dashboard/faculty/courses/<id>/edit`, which reuses the same form prefilled.
+   Editing never changes the slug, so links already shared keep working, and re-saving a
+   live course keeps its original publish date.
+4. A student enrols from `/courses/<slug>`: scan the UPI QR, pay, submit the UTR. The order
+   lands in the faculty dashboard as *Awaiting verification* until the faculty confirms it
+   against their bank statement.
+
+### Course banners
+
+`BannerUpload` sends the file **straight from the browser** to the public `course-covers`
+bucket, then carries the resulting URL in a hidden `cover_url` input. It deliberately does
+not route image bytes through the Server Action — those have a 1 MB body limit by default,
+and banners are routinely larger.
+
+Objects are written to `<user-id>/<timestamp>-<rand>.<ext>`; the storage policy keys on that
+first path segment, so a faculty member can only write into their own folder (verified: an
+upload aimed at another user's folder is rejected).
+
+Cards fall back to the category gradient when `cover_url` is null, so courses without a
+banner still look deliberate. The Supabase storage host is allowlisted under
+`images.remotePatterns` in `next.config.ts` — a different project ref needs that updated.
+
+### Before you launch
+
+**Custom SMTP is configured** (Resend). Supabase's built-in sender is capped at roughly
+2 emails per hour; past that, signups fail with `over_email_send_rate_limit`. That is no
+longer in play — consecutive signups have been verified sending confirmation mail through
+Resend.
+
+For reference, the settings in *Authentication → Emails → SMTP Settings*:
+
+| Supabase field | Value |
+| --- | --- |
+| Host | `smtp.resend.com` |
+| Port | `587` |
+| Username | `resend` |
+| Password | your `RESEND_API_KEY` |
+| Sender email | `hello@info.wellthyfy.in` |
+| Sender name | `Wellthyfy Lifestyle Ventures` |
+
+The sender must stay on the Resend-verified `info.wellthyfy.in` domain. If signups ever
+start failing with a rate-limit error again, check *Authentication → Rate Limits →
+emails per hour*.
+
+Also add your production URL under *Authentication → URL Configuration → Redirect URLs*,
+or the confirmation links will bounce back to localhost.
+
+Set the real UPI details in `.env.local`:
+
+```
+NEXT_PUBLIC_UPI_ID=yourname@bank
+NEXT_PUBLIC_UPI_PAYEE_NAME=Wellthyfy Lifestyle Ventures
+```
 
 ## Privacy Policy
 

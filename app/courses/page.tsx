@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, Clock, GraduationCap, Info, Sparkles } from "lucide-react";
 import CourseCover from "@/components/sections/CourseCover";
+import LiveCourses from "@/components/sections/LiveCourses";
 import { Icon } from "@/components/ui/Icon";
 import { accentStyles, cn } from "@/lib/accents";
 import { CATALOGUE_COUNT, coursePillars, coursesForPillar } from "@/lib/courses";
@@ -67,6 +68,8 @@ export default function CoursesPage() {
             })}
           </nav>
         </div>
+
+        <LiveCourses embedded />
 
         {/* Pillars */}
         {coursePillars.map((pillar) => {
