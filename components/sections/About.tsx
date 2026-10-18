@@ -16,10 +16,10 @@ function BalanceArtwork() {
         aria-hidden="true"
       />
       <Image
-        src="/balance.webp"
-        alt="Health, Wealth and Happiness shown as three overlapping circles, with Balance at the centre where all three meet."
-        width={1100}
-        height={1079}
+        src="/goal.webp"
+        alt="Wellness, Wealthiness and Happiness shown as three overlapping circles, with the Wellthyfy logo at the centre where all three meet."
+        width={1000}
+        height={1000}
         sizes="(max-width: 1024px) 90vw, 32rem"
         className="relative w-full"
       />

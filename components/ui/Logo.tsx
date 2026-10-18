@@ -17,16 +17,16 @@ import { cn } from "@/lib/accents";
  * menu button on a phone, so the header steps down on small screens.
  */
 const VARIANTS = {
-  /** 48px → 64px → 80px emblem. */
+  /** 56px → 72px → 88px emblem. */
   header: {
-    emblem: "size-12 sm:size-16 md:size-20",
-    wordmark: "h-[1.55rem] sm:h-[2.05rem] md:h-[2.6rem]",
-    gap: "gap-2.5 md:gap-3.5",
+    emblem: "size-14 sm:size-18 md:size-28",
+    wordmark: "h-[1.8rem] sm:h-[2.3rem] md:h-[4.5rem]",
+    gap: "gap-2.5 ",
   },
   /** 80px emblem — the footer has room for the full lockup at every width. */
   footer: {
     emblem: "size-20",
-    wordmark: "h-[2.6rem]",
+    wordmark: "h-[4.5rem]",
     gap: "gap-3.5",
   },
 } as const;
@@ -50,7 +50,7 @@ export function Logo({
         width={160}
         height={160}
         priority={priority}
-        sizes="80px"
+        sizes="88px"
         className={cn("shrink-0 drop-shadow-sm transition-all duration-300", size.emblem)}
       />
       <Image
@@ -59,7 +59,7 @@ export function Logo({
         width={900}
         height={230}
         priority={priority}
-        sizes="160px"
+        sizes="180px"
         className={cn("w-auto shrink-0 transition-all duration-300", size.wordmark)}
       />
     </span>
