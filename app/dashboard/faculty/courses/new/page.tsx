@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import CourseForm from "@/components/platform/CourseForm";
-import { requireProfile } from "@/lib/supabase/auth";
+import { requireFaculty } from "@/lib/supabase/auth";
 
 export const metadata: Metadata = {
   title: "Create a course",
@@ -11,8 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function NewCoursePage() {
-  const { profile } = await requireProfile();
-  if (profile.role !== "faculty") redirect("/dashboard/student");
+  await requireFaculty();
 
   return (
     <div className="relative pb-24 pt-28 md:pt-36">

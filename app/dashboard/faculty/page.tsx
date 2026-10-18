@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { BadgeCheck, Eye, EyeOff, Pencil, Plus, X } from "lucide-react";
+import { Eye, EyeOff, Pencil, Plus } from "lucide-react";
 import { DashboardShell, EmptyState, StatCard } from "@/components/platform/DashboardShell";
 import { accentStyles, cn } from "@/lib/accents";
 import {
@@ -12,8 +12,8 @@ import {
   type Course,
   type Order,
 } from "@/lib/platform";
-import { requireProfile } from "@/lib/supabase/auth";
-import { setCourseStatus, setOrderStatus } from "./actions";
+import { requireFaculty } from "@/lib/supabase/auth";
+import { setCourseStatus } from "./actions";
 
 export const metadata: Metadata = {
   title: "Faculty dashboard",
@@ -27,7 +27,7 @@ const ORDER_TONE: Record<string, string> = {
 };
 
 export default async function FacultyDashboard() {
-  const { supabase, profile } = await requireProfile();
+  const { supabase, profile } = await requireFaculty();
 
   const [{ data: courseRows }, { data: orderRows }] = await Promise.all([
     supabase
@@ -55,7 +55,7 @@ export default async function FacultyDashboard() {
     <DashboardShell
       profile={profile}
       title="Faculty dashboard"
-      subtitle="Create courses, publish them to the site, and confirm payments."
+      subtitle="Manage your courses and see who has enrolled."
       tabs={[]}
       active="/dashboard/faculty"
       action={
@@ -209,19 +209,20 @@ export default async function FacultyDashboard() {
         )}
       </section>
 
-      {/* Orders */}
+      {/* Enrolments */}
       <section className="mt-14">
-        <h2 className="text-xl font-semibold sm:text-2xl">Enrolments &amp; payments</h2>
+        <h2 className="text-xl font-semibold sm:text-2xl">Your students</h2>
         <p className="mt-1.5 text-sm text-ink-soft">
-          Students pay by UPI and submit the UTR. Check it against your bank statement, then mark
-          it verified.
+          Students pay Wellthyfy by UPI and our team confirms each payment. Once a payment is{" "}
+          <span className="font-semibold text-ink">verified</span> it counts towards your
+          bi-weekly payout.
         </p>
 
         {orders.length === 0 ? (
           <div className="mt-5">
             <EmptyState
               title="No enrolments yet"
-              body="When a student enrols and submits their UPI reference, it lands here for you to verify."
+              body="When a student enrols in one of your courses, they appear here with their contact details."
             />
           </div>
         ) : (
@@ -229,16 +230,31 @@ export default async function FacultyDashboard() {
             <table className="w-full min-w-[46rem] text-left text-sm">
               <thead className="border-b border-navy-900/7 text-[11px] uppercase tracking-[0.14em] text-navy-700/60">
                 <tr>
+                  <th className="px-5 py-3.5 font-semibold">Student</th>
                   <th className="px-5 py-3.5 font-semibold">Course</th>
                   <th className="px-5 py-3.5 font-semibold">Amount</th>
-                  <th className="px-5 py-3.5 font-semibold">UTR</th>
-                  <th className="px-5 py-3.5 font-semibold">Status</th>
-                  <th className="px-5 py-3.5 font-semibold">Action</th>
+                  <th className="px-5 py-3.5 font-semibold">Payment</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.map((order) => (
                   <tr key={order.id} className="border-b border-navy-900/5 last:border-0">
+                    <td className="px-5 py-4">
+                      <p className="font-medium text-ink">{order.student_name ?? "Student"}</p>
+                      {order.student_email && (
+                        <a
+                          href={`mailto:${order.student_email}`}
+                          className="mt-0.5 block text-xs text-navy-700 hover:underline"
+                        >
+                          {order.student_email}
+                        </a>
+                      )}
+                      {order.student_whatsapp && (
+                        <p className="mt-0.5 text-xs text-ink-soft">
+                          WhatsApp {order.student_whatsapp}
+                        </p>
+                      )}
+                    </td>
                     <td className="px-5 py-4">
                       <p className="font-medium text-ink">{order.course_title}</p>
                       <p className="mt-0.5 text-xs text-ink-soft">
@@ -252,7 +268,6 @@ export default async function FacultyDashboard() {
                     <td className="px-5 py-4 font-semibold text-navy-800">
                       {formatINR(order.amount_inr)}
                     </td>
-                    <td className="px-5 py-4 font-mono text-xs text-ink-soft">{order.utr}</td>
                     <td className="px-5 py-4">
                       <span
                         className={cn(
@@ -262,36 +277,6 @@ export default async function FacultyDashboard() {
                       >
                         {STATUS_LABELS[order.status]}
                       </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      {order.status === "pending" ? (
-                        <div className="flex gap-2">
-                          <form action={setOrderStatus}>
-                            <input type="hidden" name="id" value={order.id} />
-                            <input type="hidden" name="status" value="verified" />
-                            <button
-                              type="submit"
-                              className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-well-600 to-well-700 px-3.5 py-1.5 text-xs font-semibold text-white transition-transform hover:-translate-y-0.5"
-                            >
-                              <BadgeCheck className="size-3.5" strokeWidth={2.4} />
-                              Verify
-                            </button>
-                          </form>
-                          <form action={setOrderStatus}>
-                            <input type="hidden" name="id" value={order.id} />
-                            <input type="hidden" name="status" value="rejected" />
-                            <button
-                              type="submit"
-                              className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-red-700 transition-colors hover:bg-red-50"
-                            >
-                              <X className="size-3.5" strokeWidth={2.6} />
-                              Reject
-                            </button>
-                          </form>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-ink-soft">—</span>
-                      )}
                     </td>
                   </tr>
                 ))}

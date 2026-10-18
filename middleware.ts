@@ -2,10 +2,10 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /** Routes that require a signed-in user. */
-const PROTECTED = ["/dashboard", "/onboarding", "/enroll", "/reset-password"];
+const PROTECTED = ["/dashboard", "/onboarding", "/enroll", "/reset-password", "/admin"];
 
 /** Routes a signed-in user should not see. */
-const AUTH_ONLY = ["/login", "/signup", "/forgot-password"];
+const AUTH_ONLY = ["/login", "/signup", "/forgot-password", "/faculty/login"];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });

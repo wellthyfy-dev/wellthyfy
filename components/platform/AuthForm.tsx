@@ -17,10 +17,13 @@ export default function AuthForm({
   mode,
   role,
   next,
+  requiredDomain,
 }: {
   mode: "login" | "signup";
   role: UserRole;
   next?: string;
+  /** Reject any other mail domain before even calling Supabase. */
+  requiredDomain?: string;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -33,6 +36,11 @@ export default function AuthForm({
     const email = String(form.get("email") ?? "").trim();
     const password = String(form.get("password") ?? "");
     const fullName = String(form.get("full_name") ?? "").trim();
+
+    if (requiredDomain && !email.toLowerCase().endsWith(`@${requiredDomain}`)) {
+      setError(`Use your Wellthyfy faculty mail id (it ends in @${requiredDomain}).`);
+      return;
+    }
 
     setBusy(true);
     setError(null);
@@ -124,7 +132,7 @@ export default function AuthForm({
           type="email"
           required
           autoComplete="email"
-          placeholder="you@example.com"
+          placeholder={requiredDomain ? `you@${requiredDomain}` : "you@example.com"}
           className={fieldClass}
         />
       </div>

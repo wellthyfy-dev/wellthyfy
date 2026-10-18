@@ -8,15 +8,20 @@ import {
   type CourseCategory,
   type CourseMode,
   type CourseStatus,
-  type OrderStatus,
 } from "@/lib/platform";
-import { requireProfile } from "@/lib/supabase/auth";
+import { requireFaculty } from "@/lib/supabase/auth";
 
 const CATEGORIES: CourseCategory[] = ["wellness", "wealth", "happiness"];
 const MODES: CourseMode[] = ["online_live", "recorded", "offline", "hybrid"];
 
 function text(form: FormData, key: string, max = 500) {
   return String(form.get(key) ?? "").trim().slice(0, max);
+}
+
+/** A freshly uploaded modules PDF must sit in the faculty's own folder. */
+function ownsModulesPdf(path: unknown, userId: string) {
+  if (path == null) return true;
+  return typeof path === "string" && new RegExp(`^${userId}/[A-Za-z0-9_.-]+\\.pdf$`).test(path);
 }
 
 export type CourseFormState = { error: string | null };
@@ -66,6 +71,7 @@ function parseCourseForm(form: FormData): ParsedCourse {
       language: text(form, "language", 40) || null,
       price_inr: price,
       cover_url: text(form, "cover_url", 500) || null,
+      modules_pdf_path: text(form, "modules_pdf_path", 200) || null,
     },
   };
 }
@@ -74,14 +80,13 @@ export async function createCourse(
   _prev: CourseFormState,
   form: FormData,
 ): Promise<CourseFormState> {
-  const { supabase, profile } = await requireProfile();
-
-  if (profile.role !== "faculty") {
-    return { error: "Only faculty accounts can create courses." };
-  }
+  const { supabase, profile } = await requireFaculty();
 
   const parsed = parseCourseForm(form);
   if (!parsed.ok) return { error: parsed.error };
+  if (!ownsModulesPdf(parsed.values.modules_pdf_path, profile.id)) {
+    return { error: "The modules PDF upload is invalid. Please upload it again." };
+  }
 
   const { error } = await supabase.from("courses").insert({
     ...parsed.values,
@@ -104,7 +109,7 @@ export async function updateCourse(
   _prev: CourseFormState,
   form: FormData,
 ): Promise<CourseFormState> {
-  const { supabase, profile } = await requireProfile();
+  const { supabase, profile } = await requireFaculty();
 
   const id = String(form.get("id") ?? "");
   if (!id) return { error: "Missing course." };
@@ -116,12 +121,17 @@ export async function updateCourse(
   // already shared for this course.
   const { data: existing } = await supabase
     .from("courses")
-    .select("slug, status, published_at")
+    .select("slug, status, published_at, modules_pdf_path")
     .eq("id", id)
     .eq("faculty_id", profile.id)
     .maybeSingle();
 
   if (!existing) return { error: "That course was not found." };
+  // Keeping the PDF that came with the approved application is fine too.
+  const pdf = parsed.values.modules_pdf_path;
+  if (pdf !== existing.modules_pdf_path && !ownsModulesPdf(pdf, profile.id)) {
+    return { error: "The modules PDF upload is invalid. Please upload it again." };
+  }
 
   const wasPublished = existing.status === "published";
   const { error } = await supabase
@@ -147,7 +157,7 @@ export async function updateCourse(
 }
 
 export async function setCourseStatus(formData: FormData) {
-  const { supabase, profile } = await requireProfile();
+  const { supabase, profile } = await requireFaculty();
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "") as CourseStatus;
   if (!id || !["draft", "published", "archived"].includes(status)) return;
@@ -164,20 +174,4 @@ export async function setCourseStatus(formData: FormData) {
   revalidatePath("/dashboard/faculty");
   revalidatePath("/courses");
   revalidatePath("/");
-}
-
-export async function setOrderStatus(formData: FormData) {
-  const { supabase, profile } = await requireProfile();
-  const id = String(formData.get("id") ?? "");
-  const status = String(formData.get("status") ?? "") as OrderStatus;
-  if (!id || !["pending", "verified", "rejected"].includes(status)) return;
-
-  await supabase
-    .from("orders")
-    .update({ status, reviewed_at: new Date().toISOString() })
-    .eq("id", id)
-    .eq("faculty_id", profile.id);
-
-  revalidatePath("/dashboard/faculty");
-  revalidatePath("/dashboard/student");
 }

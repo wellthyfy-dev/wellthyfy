@@ -154,8 +154,8 @@ export default function Navbar() {
               <AuthButton label="My dashboard" href="/dashboard" variant="solid" />
             ) : (
               <>
-                <AuthButton label="Student Login" href="/login?role=student" variant="ghost" />
-                <AuthButton label="Faculty Login" href="/login?role=faculty" variant="solid" />
+                <AuthButton label="Student Login" href="/login" variant="ghost" />
+                <AuthButton label="Become a Faculty" href="/become-a-faculty" variant="solid" />
               </>
             )}
           </div>
@@ -224,13 +224,13 @@ export default function Navbar() {
                   <>
                     <AuthButton
                       label="Student Login"
-                      href="/login?role=student"
+                      href="/login"
                       variant="ghost"
                       className="w-full py-3"
                     />
                     <AuthButton
-                      label="Faculty Login"
-                      href="/login?role=faculty"
+                      label="Become a Faculty"
+                      href="/become-a-faculty"
                       variant="solid"
                       className="w-full py-3"
                     />

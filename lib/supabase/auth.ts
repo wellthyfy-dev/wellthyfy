@@ -1,4 +1,5 @@
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { isFacultyEmail } from "@/lib/faculty";
 import type { Profile } from "@/lib/platform";
 import { createClient } from "./server";
 
@@ -23,5 +24,28 @@ export async function requireProfile({ completed = true }: { completed?: boolean
   const { supabase, user, profile } = await getSessionProfile();
   if (!user || !profile) redirect("/login");
   if (completed && !profile.profile_completed) redirect("/onboarding");
+  return { supabase, user, profile };
+}
+
+/**
+ * Faculty-only areas. Faculty accounts must sit on a @wellthyfy.in mail id, so a
+ * faculty profile on any other address is sent to an explanatory page rather
+ * than into the dashboard.
+ */
+export async function requireFaculty() {
+  const ctx = await requireProfile();
+  if (ctx.profile.role !== "faculty") redirect("/dashboard");
+  if (!isFacultyEmail(ctx.profile.email)) redirect("/faculty/restricted");
+  return ctx;
+}
+
+/**
+ * Admin-only areas. Signed-out visitors go to sign-in; signed-in non-admins get
+ * a plain 404 so the panel's existence is not confirmed to them.
+ */
+export async function requireAdmin() {
+  const { supabase, user, profile } = await getSessionProfile();
+  if (!user) redirect("/login?next=/admin");
+  if (!profile?.is_admin) notFound();
   return { supabase, user, profile };
 }

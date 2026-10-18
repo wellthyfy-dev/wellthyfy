@@ -18,13 +18,13 @@ export function escapeHtml(value: string) {
     .replace(/'/g, "&#39;");
 }
 
-const GREEN = "#2E8B57";
-const NAVY = "#0A4D9D";
-const GOLD = "#D4A017";
-const INK = "#0E2233";
-const SOFT = "#44576A";
+export const GREEN = "#2E8B57";
+export const NAVY = "#0A4D9D";
+export const GOLD = "#D4A017";
+export const INK = "#0E2233";
+export const SOFT = "#44576A";
 
-const shell = (inner: string) => `
+export const shell = (inner: string) => `
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:24px 12px;background:#f1f6f3;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:${INK};">
@@ -41,7 +41,7 @@ const shell = (inner: string) => `
   </table>
 </body></html>`;
 
-const row = (label: string, value: string) => `
+export const row = (label: string, value: string) => `
   <tr>
     <td style="padding:10px 0;border-bottom:1px solid #eef3f6;color:${SOFT};font-size:13px;width:34%;vertical-align:top;">${label}</td>
     <td style="padding:10px 0;border-bottom:1px solid #eef3f6;font-size:14px;font-weight:600;color:${INK};">${value}</td>

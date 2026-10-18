@@ -18,6 +18,7 @@ export type OrderStatus = "pending" | "verified" | "rejected";
 export type Profile = {
   id: string;
   role: UserRole;
+  is_admin: boolean;
   full_name: string | null;
   email: string;
   phone: string | null;
@@ -31,7 +32,12 @@ export type Profile = {
 
 export type Course = {
   id: string;
-  faculty_id: string;
+  /** Null while an approved course is live but its faculty has no account yet. */
+  faculty_id: string | null;
+  application_id: string | null;
+  /** Legacy typed modules; new courses use `modules_pdf_path`. */
+  modules: string | null;
+  modules_pdf_path: string | null;
   faculty_name: string | null;
   title: string;
   slug: string;
@@ -54,7 +60,10 @@ export type Order = {
   id: string;
   course_id: string;
   student_id: string;
-  faculty_id: string;
+  faculty_id: string | null;
+  student_name: string | null;
+  student_email: string | null;
+  student_whatsapp: string | null;
   course_title: string;
   amount_inr: number;
   utr: string;
@@ -185,4 +194,17 @@ export function upiLink({
   });
   if (ref) params.set("tr", ref);
   return `upi://pay?${params.toString()}`;
+}
+
+/** Module outlines are uploaded as one PDF to the public `course-modules` bucket. */
+export const MODULES_PDF = {
+  bucket: "course-modules",
+  maxBytes: 10 * 1024 * 1024,
+} as const;
+
+export function modulesPdfUrl(path: string | null | undefined) {
+  if (!path) return null;
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  const key = path.split("/").map(encodeURIComponent).join("/");
+  return `${base}/storage/v1/object/public/${MODULES_PDF.bucket}/${key}`;
 }

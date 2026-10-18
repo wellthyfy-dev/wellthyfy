@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import CourseForm from "@/components/platform/CourseForm";
 import type { Course } from "@/lib/platform";
-import { requireProfile } from "@/lib/supabase/auth";
+import { requireFaculty } from "@/lib/supabase/auth";
 
 export const metadata: Metadata = {
   title: "Edit course",
@@ -17,8 +17,7 @@ export default async function EditCoursePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { supabase, profile } = await requireProfile();
-  if (profile.role !== "faculty") redirect("/dashboard/student");
+  const { supabase, profile } = await requireFaculty();
 
   // RLS already limits this to the signed-in faculty, but scope it explicitly
   // so a wrong id reads as "not found" rather than an empty form.

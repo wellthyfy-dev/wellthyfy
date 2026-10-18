@@ -44,6 +44,9 @@ export async function submitEnrollment(
     faculty_id: course.faculty_id,
     course_title: course.title,
     amount_inr: course.price_inr,
+    student_name: profile.full_name,
+    student_email: profile.email,
+    student_whatsapp: profile.whatsapp,
     utr,
     payer_note: note || null,
   });

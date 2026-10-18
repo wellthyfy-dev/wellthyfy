@@ -3,7 +3,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
-import { ArrowLeft, BadgeCheck, Clock, Globe, GraduationCap, Layers, User } from "lucide-react";
+import {
+  ArrowLeft,
+  BadgeCheck,
+  Clock,
+  Download,
+  FileText,
+  Globe,
+  GraduationCap,
+  Layers,
+  User,
+} from "lucide-react";
 import EnrollPanel from "@/components/platform/EnrollPanel";
 import { Icon } from "@/components/ui/Icon";
 import { accentStyles, cn } from "@/lib/accents";
@@ -12,6 +22,7 @@ import {
   MODE_LABELS,
   STATUS_LABELS,
   formatINR,
+  modulesPdfUrl,
   upiLink,
   type Course,
   type Order,
@@ -61,6 +72,7 @@ export default async function CourseDetailPage({
   const { profile } = await getSessionProfile();
   const meta = CATEGORY_META[course.category];
   const a = accentStyles[meta.accent];
+  const modulesUrl = modulesPdfUrl(course.modules_pdf_path);
 
   // Does this signed-in student already have an order?
   let existing: Order | null = null;
@@ -179,6 +191,52 @@ export default async function CourseDetailPage({
                 {course.description}
               </div>
             </div>
+
+            {modulesUrl && (
+              <div className="mt-10">
+                <h2 className="text-xl font-semibold sm:text-2xl">Modules</h2>
+                <a
+                  href={modulesUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group mt-4 flex items-center gap-4 rounded-2xl border border-navy-900/7 bg-white/85 px-5 py-4 shadow-soft backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-well-300 hover:shadow-lift"
+                >
+                  <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-well-400 to-navy-700 text-white">
+                    <FileText className="size-5" strokeWidth={2} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-semibold text-ink">Course modules (PDF)</span>
+                    <span className="block text-sm text-ink-soft">
+                      See every module and what it covers
+                    </span>
+                  </span>
+                  <Download className="size-5 shrink-0 text-navy-700 transition-transform duration-300 group-hover:translate-y-0.5" />
+                </a>
+              </div>
+            )}
+
+            {!modulesUrl && course.modules && (
+              <div className="mt-10">
+                <h2 className="text-xl font-semibold sm:text-2xl">Modules</h2>
+                <ol className="mt-4 grid gap-2.5">
+                  {course.modules
+                    .split(/\r?\n/)
+                    .map((line) => line.trim())
+                    .filter(Boolean)
+                    .map((line, i) => (
+                      <li
+                        key={`${i}-${line}`}
+                        className="flex items-start gap-3.5 rounded-2xl border border-navy-900/7 bg-white/85 px-4 py-3.5 shadow-soft backdrop-blur-sm"
+                      >
+                        <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-gradient-to-br from-well-400 to-well-600 text-[11px] font-bold text-white">
+                          {i + 1}
+                        </span>
+                        <span className="text-[0.95rem] leading-relaxed text-ink">{line}</span>
+                      </li>
+                    ))}
+                </ol>
+              </div>
+            )}
           </div>
 
           {/* Enrolment rail */}

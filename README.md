@@ -41,8 +41,11 @@ app/
                     scroll-to-top, analytics)
   page.tsx          section composition
   courses/          catalogue + /courses/[slug] detail & enrolment
-  login/ signup/    auth entry points (?role=student|faculty)
-  onboarding/       profile completion (contact details + Aadhaar images)
+  login/ signup/    student auth
+  become-a-faculty/ public landing + /apply application form
+  faculty/          HIDDEN: login, join (invite-only), restricted
+  admin/            admin panel: applications, payments, courses
+  onboarding/       student profile completion (contact details + Aadhaar images)
   dashboard/        role router -> /dashboard/faculty | /dashboard/student
   auth/             Supabase callback + signout routes
   privacy-policy/   Privacy Policy route
@@ -94,12 +97,10 @@ together.
 
 These are deliberately stubbed:
 
-1. **Student / Faculty login** — `href="#"` with a "Coming Soon" tooltip
-   (`components/layout/Navbar.tsx`). Point at the portals when they exist.
-2. **Social profiles** — placeholder links in `components/layout/SocialLinks.tsx`.
-3. **Course photography** — real photos are in `public/courses/`; rebuild them from
+1. **Social profiles** — placeholder links in `components/layout/SocialLinks.tsx`.
+2. **Course photography** — real photos are in `public/courses/`; rebuild them from
    `assets/brand/` if the sources change.
-4. **Testimonials** — dummy content, as specified.
+3. **Testimonials** — dummy content, as specified.
 
 ## The header logo
 
@@ -213,49 +214,113 @@ disclaimer — keep it if you keep the course.
 
 ## Platform (Supabase)
 
-Faculty and students sign in with email + password. Project `asldprpmsegjdtyvuett`
-(ap-southeast-1). Schema lives in `supabase/migrations/0001_init.sql` and is **already
-applied** — re-running it is safe.
+Students, faculty and admins sign in with email + password. Project `asldprpmsegjdtyvuett`
+(ap-southeast-1). Schema lives in `supabase/migrations/` (`0001_init.sql`,
+`0002_faculty_program.sql`, `0003_module_pdfs.sql`) and is **already applied** — re-running is safe.
 
 ### Tables
 
 | Table | Purpose |
 | --- | --- |
-| `profiles` | One row per auth user. Role, contact details, Aadhaar storage paths. |
-| `courses` | Faculty-authored courses. `status` gates public visibility. |
-| `orders` | Manual-UPI enrolments: amount, UTR, pending/verified/rejected. |
+| `profiles` | One row per auth user. Role, `is_admin`, contact details, Aadhaar paths. |
+| `courses` | Courses. `status` gates public visibility. `faculty_id` is null while an approved course is live but its faculty has no account yet. |
+| `orders` | Manual-UPI enrolments: amount, UTR, student contact, pending/verified/rejected. |
+| `faculty_applications` | Applicant details, government ID paths, proposed course, review state and invite token. |
+| `admin_emails` | Addresses that become admin when they **confirm** their email. Invisible to the API. |
 
 ### Security model
 
 Everything runs on the **anon key under Row Level Security**. The service_role key is not
 used anywhere in the app — if you add it later, keep it server-only.
 
-- `profiles` is **owner-only**. No user can read anyone else's phone, address or Aadhaar
-  paths, so course cards read a denormalised `faculty_name` (kept current by trigger).
+- `profiles` is **owner-only** (admins can also read). Users can edit only their contact
+  columns — **`role` and `is_admin` are not writable by anyone through the API**, enforced
+  with column-level grants, and `INSERT` on profiles is revoked entirely. (An earlier
+  version let a user set their own `role`; that is closed.)
 - `courses` are world-readable only when `status = 'published'`; drafts are visible to
-  their author alone. Only a profile with `role = 'faculty'` can insert.
-- `orders` are visible to the buyer and that course's faculty. A student **cannot** move
-  their own order to `verified` — only the faculty can.
-- Aadhaar images go to a **private** `kyc` bucket at `<user-id>/aadhaar-front.*`. The
-  storage policy keys on that first path segment, so a user can only touch their own files.
+  their author alone. A faculty member can create courses only if their profile is
+  `role = 'faculty'` **and** their email is on `@wellthyfy.in`. Admins can manage all.
+- `orders`: a student can only insert a **pending** order whose amount, title and faculty
+  match the published course (an earlier version let a client insert a pre-verified
+  order). Only an **admin** can verify or reject — payments go to Wellthyfy's UPI account,
+  so only Wellthyfy can check a UTR. Faculty get read-only access to their own students.
+- **Faculty accounts are invitation-only, enforced in the database.** The `handle_new_user`
+  trigger treats `role` in signup metadata as a *request*: `faculty` is granted only when
+  the new account's email equals an approved application's assigned `@wellthyfy.in` id
+  **and** the 192-bit invite token matches and is unused. Anything else aborts the signup.
+  `admin` is never accepted from metadata.
+- **Admin is granted on email confirmation**, from `admin_emails`, not on sign-up — so
+  nobody can pre-register an admin address they do not own.
+- Aadhaar images (students) go to a **private** `kyc` bucket at `<user-id>/aadhaar-front.*`;
+  applicant IDs go to a **private** `applications` bucket at `<application-uuid>/id-front.*`.
+  Only admins can read the latter, via 10-minute signed URLs. Anonymous applicants can
+  *upload* there (filename pattern, mime type and 5 MB limit enforced by the bucket and
+  policy) but can never read, list or overwrite anything.
 
 ### Flows
 
-1. Sign up at `/signup?role=faculty|student` → confirmation email → `/auth/callback`.
-   Password fields have a show/hide toggle; `/login` links to `/forgot-password`, which
-   emails a recovery link that lands on `/reset-password`. Those reset emails go through
-   the same Supabase sender, so they hit the rate limit too until SMTP is configured.
-2. `/onboarding` collects name, phone, WhatsApp, address and both Aadhaar images, then sets
-   `profile_completed`. Middleware keeps users here until it is done.
-3. Faculty create courses at `/dashboard/faculty/courses/new` (category → subcategory, with
-   a free-text **Other**, plus an optional banner image). Publishing makes them appear on
-   the homepage and `/courses`. Each row has an **Edit** button →
-   `/dashboard/faculty/courses/<id>/edit`, which reuses the same form prefilled.
-   Editing never changes the slug, so links already shared keep working, and re-saving a
-   live course keeps its original publish date.
-4. A student enrols from `/courses/<slug>`: scan the UPI QR, pay, submit the UTR. The order
-   lands in the faculty dashboard as *Awaiting verification* until the faculty confirms it
-   against their bank statement.
+**Students**
+
+1. Sign up at `/signup` → confirmation email → `/auth/callback` → `/onboarding` (name, phone,
+   WhatsApp, address, Aadhaar front/back). Password fields have a show/hide toggle;
+   `/login` links to `/forgot-password` → emailed link → `/reset-password`.
+2. A student enrols from `/courses/<slug>`: scan the UPI QR, pay, submit the UTR. The order
+   shows as *Awaiting verification* until an admin verifies it.
+
+**Becoming faculty**
+
+1. Visitor clicks **Become a Faculty** (nav, footer) → `/become-a-faculty` (landing: how to
+   earn in 3 steps) → `/become-a-faculty/apply`.
+2. The application collects personal details, a **government ID** (front + optional back,
+   uploaded straight to the private bucket), and the course: category → subcategory
+   (or **Other**), title, description, a **modules PDF**, mode, level, duration, language and fee.
+3. `POST /api/faculty-apply` validates, throttles (3/hour/IP), stores a *pending* row, then
+   emails the admins (`CONTACT_TO_EMAIL`) and acknowledges the applicant. The admin panel's
+   **Applications** tab also shows a live pending count.
+4. An admin opens the application, views the ID, and **approves** or **rejects**.
+   Approving (one DB transaction) publishes the course **immediately**, assigns the
+   `@wellthyfy.in` mail id and issues the invite token. The applicant is emailed the mail
+   id, a private link and the live course URL.
+5. The faculty member opens `/faculty/join?token=…`, sets a password and confirms the email
+   Supabase sends **to their new @wellthyfy.in mailbox**. The live course attaches to the
+   account and the profile is pre-completed from the application. They sign in later at
+   `/faculty/login`.
+6. Faculty can then create more courses and edit their own at
+   `/dashboard/faculty/courses/new` and `/<id>/edit` (same form, prefilled; the slug never
+   changes and a live course keeps its original publish date). They see enrolled students
+   (name, email, WhatsApp) read-only.
+
+`/faculty/login`, `/faculty/join` and the whole admin panel are **not linked from any public
+page** and are `noindex`. `/login` and `/signup` are student-only.
+
+**Admins**
+
+`/admin` (tabs: Overview, Applications, Payments, Courses). An admin signs in through the
+normal `/login` and is routed to `/admin`. Non-admins get a plain 404 there.
+
+To make someone an admin: add their address to `admin_emails`, then have them sign up and
+**confirm** their email. For `promaxx2021@gmail.com` this is already seeded, so that person
+only needs to sign up at `/signup` and click the confirmation link. If you ever need to
+force it by hand:
+
+```sql
+update public.profiles set is_admin = true where email = 'someone@example.com';
+```
+
+### Course modules (PDF)
+
+Modules are uploaded as **one PDF** (max 10 MB) instead of typed text, to the **public**
+`course-modules` bucket — it is curriculum, meant for prospective students.
+
+- **Applicants** (not signed in) upload to exactly `apply/<application-id>/modules.pdf`;
+  anon may insert only that path, never overwrite, list or delete. `/api/faculty-apply`
+  requires the path to match the application id and HEAD-checks that the file exists.
+- **Approval** copies `modules_pdf_path` from the application onto the new course.
+- **Faculty** upload from the course create/edit form (`ModulesPdfUpload`) into their own
+  `<user-id>/` folder; the server action accepts only their own folder or the course's
+  existing PDF.
+- The course page shows a **Course modules (PDF)** download card; the admin review page links
+  the PDF. Older rows with typed `modules` text still render as a numbered list.
 
 ### Course banners
 
@@ -296,6 +361,15 @@ emails per hour*.
 
 Also add your production URL under *Authentication → URL Configuration → Redirect URLs*,
 or the confirmation links will bounce back to localhost.
+
+**Faculty mailboxes must exist.** Approving assigns an `@wellthyfy.in` address, but the app
+does not create the mailbox — create it in your mail host first. The faculty member's
+account-confirmation email is delivered there, so an address with no working inbox leaves
+them unable to finish signing up. Credentials for that mailbox are never emailed by the app.
+
+**Set `NEXT_PUBLIC_SITE_URL`** in production (e.g. `https://www.wellthyfy.in`). Links in
+approval emails are built from it; if unset they use the request host, which is right for
+local testing but should be pinned in production.
 
 Set the real UPI details in `.env.local`:
 

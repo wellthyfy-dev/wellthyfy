@@ -50,6 +50,15 @@ export default function Footer() {
                   </a>
                 </li>
               ))}
+              <li>
+                <Link
+                  href="/become-a-faculty"
+                  className="group inline-flex items-center gap-1.5 py-1.5 text-[0.95rem] font-medium text-navy-800 transition-colors hover:text-well-700"
+                >
+                  <span className="h-px w-0 bg-well-600 transition-all duration-300 group-hover:w-4" />
+                  Become a Faculty
+                </Link>
+              </li>
             </ul>
           </nav>
 
