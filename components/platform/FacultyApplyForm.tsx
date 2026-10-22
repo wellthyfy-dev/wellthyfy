@@ -2,9 +2,9 @@
 
 import {
   AlertCircle,
-  BookOpenCheck,
   CheckCircle2,
   FileCheck2,
+  GraduationCap,
   Loader2,
   Send,
   UserRound,
@@ -12,13 +12,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
-import { ID_TYPES, ID_UPLOAD } from "@/lib/faculty";
-import { MODE_LABELS, MODULES_PDF, type CourseMode } from "@/lib/platform";
+import { ID_UPLOAD } from "@/lib/faculty";
 import { createClient } from "@/lib/supabase/client";
 import { fieldClass, labelClass } from "./AuthForm";
-import CategoryFields from "./CategoryFields";
-
-const MODES = Object.keys(MODE_LABELS) as CourseMode[];
 const ACCEPT = Object.keys(ID_UPLOAD.types).join(",");
 
 function Section({
@@ -96,19 +92,24 @@ export default function FacultyApplyForm() {
     const form = new FormData(e.currentTarget);
     setError(null);
 
-    const front = form.get("id_front");
-    const back = form.get("id_back");
-    const modules = form.get("modules_pdf");
-    const frontFile = front instanceof File && front.size > 0 ? front : null;
-    const backFile = back instanceof File && back.size > 0 ? back : null;
-    const modulesFile = modules instanceof File && modules.size > 0 ? modules : null;
+    // Both PAN and Aadhaar (front and back) are required for verification.
+    const file = (key: string) => {
+      const v = form.get(key);
+      return v instanceof File && v.size > 0 ? v : null;
+    };
+    const panFile = file("pan_card");
+    const frontFile = file("id_front");
+    const backFile = file("id_back");
 
-    if (!frontFile) {
-      setError("Please upload the front of your government ID.");
+    if (!panFile) {
+      setError("Please upload your PAN card.");
       return;
     }
-    for (const f of [frontFile, backFile]) {
-      if (!f) continue;
+    if (!frontFile || !backFile) {
+      setError("Please upload both the front and the back of your Aadhaar card.");
+      return;
+    }
+    for (const f of [panFile, frontFile, backFile]) {
       if (!(f.type in ID_UPLOAD.types)) {
         setError("ID files must be a JPG, PNG, WebP or PDF.");
         return;
@@ -118,19 +119,6 @@ export default function FacultyApplyForm() {
         return;
       }
     }
-    if (!modulesFile) {
-      setError("Please upload your course modules as a PDF.");
-      return;
-    }
-    if (modulesFile.type !== "application/pdf") {
-      setError("Your modules must be uploaded as a PDF.");
-      return;
-    }
-    if (modulesFile.size > MODULES_PDF.maxBytes) {
-      setError("The modules PDF must be under 10 MB.");
-      return;
-    }
-
     setBusy(true);
     try {
       // The application id doubles as the storage folder, so the files and the
@@ -138,9 +126,9 @@ export default function FacultyApplyForm() {
       const id = crypto.randomUUID();
       const supabase = createClient();
 
-      const upload = async (file: File, side: "front" | "back") => {
+      const upload = async (file: File, name: "id-front" | "id-back" | "pan") => {
         const ext = ID_UPLOAD.types[file.type as keyof typeof ID_UPLOAD.types];
-        const path = `${id}/id-${side}.${ext}`;
+        const path = `${id}/${name}.${ext}`;
         const { error } = await supabase.storage
           .from("applications")
           .upload(path, file, { upsert: false, contentType: file.type });
@@ -148,17 +136,9 @@ export default function FacultyApplyForm() {
         return path;
       };
 
-      const frontPath = await upload(frontFile, "front");
-      const backPath = backFile ? await upload(backFile, "back") : "";
-
-      // Curriculum is public once approved, so it goes to its own public bucket.
-      const modulesPath = `apply/${id}/modules.pdf`;
-      const { error: modulesError } = await supabase.storage
-        .from(MODULES_PDF.bucket)
-        .upload(modulesPath, modulesFile, { upsert: false, contentType: "application/pdf" });
-      if (modulesError) {
-        throw new Error(`Could not upload your modules PDF (${modulesError.message}).`);
-      }
+      const panPath = await upload(panFile, "pan");
+      const frontPath = await upload(frontFile, "id-front");
+      const backPath = await upload(backFile, "id-back");
 
       const text = (k: string) => String(form.get(k) ?? "");
       const res = await fetch("/api/faculty-apply", {
@@ -172,22 +152,11 @@ export default function FacultyApplyForm() {
           phone: text("phone"),
           whatsapp: text("whatsapp"),
           address: text("address"),
+          qualification: text("qualification"),
           experience: text("experience"),
-          id_type: text("id_type"),
+          pan_path: panPath,
           id_front_path: frontPath,
           id_back_path: backPath,
-          course_title: text("course_title"),
-          course_summary: text("course_summary"),
-          course_description: text("course_description"),
-          modules_pdf_path: modulesPath,
-          category: text("category"),
-          subcategory: text("subcategory"),
-          subcategory_other: text("subcategory_other"),
-          mode: text("mode"),
-          level: text("level"),
-          duration: text("duration"),
-          language: text("language"),
-          fee_inr: text("fee_inr"),
           consent: form.get("consent") === "on",
         }),
       });
@@ -209,7 +178,7 @@ export default function FacultyApplyForm() {
         <CheckCircle2 className="mx-auto size-12 text-well-600" />
         <h2 className="mt-5 text-2xl font-semibold sm:text-3xl">Application received</h2>
         <p className="mx-auto mt-3 max-w-md text-base leading-relaxed text-ink-soft">
-          Thank you. Our team will review your application and your course, and we will email you
+          Thank you. Our team will review your details and ID, and we will email you
           at <span className="font-semibold text-ink">{done}</span> as soon as there is a
           decision.
         </p>
@@ -289,17 +258,37 @@ export default function FacultyApplyForm() {
             className={`${fieldClass} resize-y`}
           />
         </div>
+      </Section>
+
+      <Section
+        icon={GraduationCap}
+        title="Qualification"
+        hint="Tell us what qualifies you to teach. You will add your course after you are approved."
+      >
+        <div className="sm:col-span-2">
+          <label htmlFor="qualification" className={labelClass}>
+            Your qualification
+          </label>
+          <textarea
+            id="qualification"
+            name="qualification"
+            required
+            rows={3}
+            maxLength={1000}
+            placeholder="Degrees, diplomas and certifications — e.g. B.Sc. Nutrition; RYT-200 certified yoga teacher."
+            className={`${fieldClass} resize-y`}
+          />
+        </div>
         <div className="sm:col-span-2">
           <label htmlFor="experience" className={labelClass}>
-            Your background
+            Teaching experience <span className="font-normal text-ink-soft">(optional)</span>
           </label>
           <textarea
             id="experience"
             name="experience"
-            required
             rows={4}
             maxLength={3000}
-            placeholder="Your qualifications and experience in what you teach."
+            placeholder="Where and what you have taught, and for how long."
             className={`${fieldClass} resize-y`}
           />
         </div>
@@ -307,115 +296,14 @@ export default function FacultyApplyForm() {
 
       <Section
         icon={FileCheck2}
-        title="Government ID"
-        hint="Used only to verify who you are. It is stored privately and visible to Wellthyfy administrators only — never shown on the website."
+        title="PAN & Aadhaar verification"
+        hint="Both are required. Used only to verify who you are. It is stored privately and visible to Wellthyfy administrators only — never shown on the website."
       >
         <div className="sm:col-span-2">
-          <label htmlFor="id_type" className={labelClass}>
-            ID type
-          </label>
-          <select id="id_type" name="id_type" required defaultValue="" className={fieldClass}>
-            <option value="" disabled>
-              Choose an ID
-            </option>
-            {ID_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
-            ))}
-          </select>
+          <FileInput name="pan_card" label="PAN card" hint="JPG, PNG, WebP or PDF · max 5 MB" />
         </div>
-        <FileInput name="id_front" label="Front side" hint="JPG, PNG, WebP or PDF · max 5 MB" />
-        <FileInput name="id_back" label="Back side (if it has one)" hint="Optional · max 5 MB" />
-      </Section>
-
-      <Section
-        icon={BookOpenCheck}
-        title="Your course"
-        hint="This is what students will see once your application is approved."
-      >
-        <CategoryFields />
-
-        <div className="sm:col-span-2">
-          <label htmlFor="course_title" className={labelClass}>
-            Course title
-          </label>
-          <input id="course_title" name="course_title" required maxLength={140} placeholder="e.g. Foundations of Mindful Investing" className={fieldClass} />
-        </div>
-        <div className="sm:col-span-2">
-          <label htmlFor="course_summary" className={labelClass}>
-            Short summary
-          </label>
-          <input id="course_summary" name="course_summary" maxLength={200} placeholder="One line shown on the course card" className={fieldClass} />
-        </div>
-        <div className="sm:col-span-2">
-          <label htmlFor="course_description" className={labelClass}>
-            Description
-          </label>
-          <textarea
-            id="course_description"
-            name="course_description"
-            required
-            rows={5}
-            maxLength={6000}
-            placeholder="What the course covers, who it is for, and what students walk away with."
-            className={`${fieldClass} resize-y`}
-          />
-        </div>
-        <div className="sm:col-span-2">
-          <FileInput
-            name="modules_pdf"
-            label="Your modules (PDF)"
-            hint="One PDF listing your modules and what each covers · max 10 MB"
-            accept="application/pdf"
-          />
-        </div>
-        <div>
-          <label htmlFor="mode" className={labelClass}>
-            Mode of delivery
-          </label>
-          <select id="mode" name="mode" required defaultValue="" className={fieldClass}>
-            <option value="" disabled>
-              Choose a mode
-            </option>
-            {MODES.map((m) => (
-              <option key={m} value={m}>
-                {MODE_LABELS[m]}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="fee_inr" className={labelClass}>
-            Course fee (INR)
-          </label>
-          <input id="fee_inr" name="fee_inr" type="number" required min={0} max={1000000} step={1} defaultValue={0} className={fieldClass} />
-          <p className="mt-1.5 text-xs text-ink-soft">The price a student pays. Enter 0 for a free course.</p>
-        </div>
-        <div>
-          <label htmlFor="duration" className={labelClass}>
-            Duration
-          </label>
-          <input id="duration" name="duration" maxLength={60} placeholder="e.g. 6 weeks · 12 sessions" className={fieldClass} />
-        </div>
-        <div>
-          <label htmlFor="level" className={labelClass}>
-            Level
-          </label>
-          <select id="level" name="level" defaultValue="" className={fieldClass}>
-            <option value="">Not specified</option>
-            <option value="Beginner">Beginner</option>
-            <option value="Intermediate">Intermediate</option>
-            <option value="Advanced">Advanced</option>
-            <option value="All levels">All levels</option>
-          </select>
-        </div>
-        <div className="sm:col-span-2">
-          <label htmlFor="language" className={labelClass}>
-            Language
-          </label>
-          <input id="language" name="language" maxLength={40} placeholder="e.g. English, Tamil" className={fieldClass} />
-        </div>
+        <FileInput name="id_front" label="Aadhaar card — front" hint="JPG, PNG, WebP or PDF · max 5 MB" />
+        <FileInput name="id_back" label="Aadhaar card — back" hint="JPG, PNG, WebP or PDF · max 5 MB" />
       </Section>
 
       <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-well-200 bg-well-50/60 p-5">
@@ -426,7 +314,7 @@ export default function FacultyApplyForm() {
           className="mt-0.5 size-4.5 shrink-0 rounded border-navy-300 text-well-600 focus:ring-well-500"
         />
         <span className="text-sm leading-relaxed text-ink-soft">
-          I confirm the details above are true and that the ID I have uploaded is mine. I agree to
+          I confirm the details above are true and that the PAN and Aadhaar cards I have uploaded are mine. I agree to
           Wellthyfy processing my information to review this application, as described in the{" "}
           <Link
             href="/privacy-policy"

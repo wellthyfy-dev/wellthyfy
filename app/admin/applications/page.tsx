@@ -3,10 +3,10 @@ import { EmptyState } from "@/components/platform/DashboardShell";
 import { cn } from "@/lib/accents";
 import {
   APPLICATION_STATUS_LABELS,
+  idSummary,
   type ApplicationStatus,
   type FacultyApplication,
 } from "@/lib/faculty";
-import { CATEGORY_META, formatINR } from "@/lib/platform";
 import { requireAdmin } from "@/lib/supabase/auth";
 
 const FILTERS: { key: ApplicationStatus | "all"; label: string }[] = [
@@ -77,10 +77,11 @@ export default async function ApplicationsPage({
               >
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-ink">{a.full_name}</p>
-                  <p className="mt-0.5 truncate text-sm text-ink-soft">{a.course_title}</p>
+                  <p className="mt-0.5 truncate text-sm text-ink-soft">
+                    {a.qualification ?? a.course_title}
+                  </p>
                   <p className="mt-1.5 text-xs text-ink-soft">
-                    {CATEGORY_META[a.category].label} · {a.subcategory} · {formatINR(a.fee_inr)} ·
-                    submitted{" "}
+                    {a.contact_email} · {idSummary(a)} · submitted{" "}
                     {new Date(a.created_at).toLocaleDateString("en-IN", {
                       day: "numeric",
                       month: "short",

@@ -6,11 +6,33 @@ export type UserRole = "student" | "faculty";
 /** Mirrors `public.course_mode`. */
 export type CourseMode = "online_live" | "recorded" | "offline" | "hybrid";
 
-/** Mirrors `public.course_category`. Labelled "Health & Wellness" in the UI. */
+/** Mirrors `public.course_category`. Shown as Wellness / Wealthiness / Happiness. */
 export type CourseCategory = "wellness" | "wealth" | "happiness";
 
 /** Mirrors `public.course_status`. */
-export type CourseStatus = "draft" | "published" | "archived";
+export type CourseStatus =
+  | "draft"
+  | "pending_review"
+  | "published"
+  | "rejected"
+  | "archived";
+
+/** How each course status reads to faculty and admins. */
+export const COURSE_STATUS_LABELS: Record<CourseStatus, string> = {
+  draft: "Draft",
+  pending_review: "In review",
+  published: "Live",
+  rejected: "Changes requested",
+  archived: "Archived",
+};
+
+export const COURSE_STATUS_TONE: Record<CourseStatus, string> = {
+  draft: "border-navy-900/10 bg-navy-50 text-ink-soft",
+  pending_review: "border-gold-200 bg-gold-50 text-gold-800",
+  published: "border-well-200 bg-well-50 text-well-800",
+  rejected: "border-red-200 bg-red-50 text-red-800",
+  archived: "border-navy-900/10 bg-navy-50 text-ink-soft",
+};
 
 /** Mirrors `public.order_status`. */
 export type OrderStatus = "pending" | "verified" | "rejected";
@@ -53,6 +75,10 @@ export type Course = {
   cover_url: string | null;
   status: CourseStatus;
   published_at: string | null;
+  /** Admin's message when changes are requested. */
+  review_note: string | null;
+  submitted_at: string | null;
+  reviewed_at: string | null;
   created_at: string;
 };
 
@@ -78,13 +104,13 @@ export const CATEGORY_META: Record<
   { label: string; accent: Accent; icon: string; blurb: string }
 > = {
   wellness: {
-    label: "Health & Wellness",
+    label: "Wellness",
     accent: "green",
     icon: "flower",
     blurb: "Live Better • Feel Better • Stay Better",
   },
   wealth: {
-    label: "Wealth",
+    label: "Wealthiness",
     accent: "navy",
     icon: "wallet",
     blurb: "Learn Money • Manage Money • Grow Money",

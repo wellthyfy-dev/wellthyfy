@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, Loader2, Plus, Save } from "lucide-react";
+import { AlertCircle, Loader2, Save, Send, ShieldCheck } from "lucide-react";
 import { useActionState } from "react";
 import {
   createCourse,
@@ -153,24 +153,23 @@ export default function CourseForm({ course }: { course?: Course }) {
         />
       </div>
 
-      <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-well-200 bg-well-50/60 p-4 sm:col-span-2">
-        <input
-          type="checkbox"
-          name="publish"
-          defaultChecked={course ? course.status === "published" : true}
-          className="mt-0.5 size-4.5 rounded border-navy-300 text-well-600 focus:ring-well-500"
-        />
+      <div className="flex items-start gap-3 rounded-2xl border border-gold-200 bg-gold-50/70 p-4 text-sm leading-relaxed text-ink-soft sm:col-span-2">
+        <ShieldCheck className="mt-0.5 size-4.5 shrink-0 text-gold-700" />
         <span>
-          <span className="block text-sm font-semibold text-ink">
-            {editing ? "Keep this course published" : "Publish immediately"}
-          </span>
-          <span className="mt-0.5 block text-xs leading-relaxed text-ink-soft">
-            {editing
-              ? "Untick to pull it off the site and keep it as a draft."
-              : "The course goes live on the Wellthyfy site straight away. Untick to save it as a draft you can publish later from your dashboard."}
-          </span>
+          {course?.status === "published" ? (
+            <>
+              <span className="font-semibold text-ink">This course is live.</span> Saving changes
+              takes it off the site until our team approves the new version.
+            </>
+          ) : (
+            <>
+              <span className="font-semibold text-ink">Every course is reviewed by Wellthyfy</span>{" "}
+              before it appears on the site. Submit it when it is ready, or save a draft and come
+              back later.
+            </>
+          )}
         </span>
-      </label>
+      </div>
 
       {state.error && (
         <p
@@ -182,26 +181,33 @@ export default function CourseForm({ course }: { course?: Course }) {
         </p>
       )}
 
-      <div className="sm:col-span-2">
+      <div className="grid gap-3 sm:col-span-2 sm:grid-cols-[auto_1fr]">
         <button
           type="submit"
+          name="intent"
+          value="draft"
           disabled={pending}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-well-600 via-well-500 to-navy-700 px-7 py-4 text-base font-semibold text-white shadow-glow-green transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift disabled:translate-y-0 disabled:opacity-70"
+          className="inline-flex items-center justify-center gap-2 rounded-full border border-navy-200 bg-white px-6 py-4 text-sm font-semibold text-navy-800 transition-colors hover:bg-navy-50 disabled:opacity-70"
+        >
+          <Save className="size-4.5" strokeWidth={2.2} />
+          Save as draft
+        </button>
+        <button
+          type="submit"
+          name="intent"
+          value="submit"
+          disabled={pending}
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-well-600 via-well-500 to-navy-700 px-7 py-4 text-base font-semibold text-white shadow-glow-green transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift disabled:translate-y-0 disabled:opacity-70"
         >
           {pending ? (
             <>
               <Loader2 className="size-4.5 animate-spin" />
               Saving…
             </>
-          ) : editing ? (
-            <>
-              Save changes
-              <Save className="size-4.5" strokeWidth={2.2} />
-            </>
           ) : (
             <>
-              Create course
-              <Plus className="size-4.5" strokeWidth={2.6} />
+              {editing ? "Save and submit for review" : "Submit for review"}
+              <Send className="size-4.5" strokeWidth={2.2} />
             </>
           )}
         </button>

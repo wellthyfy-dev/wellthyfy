@@ -16,6 +16,18 @@ export const siteConfig = {
   },
 } as const;
 
+/**
+ * "How it works" video on /become-a-faculty. Set ONE of these:
+ * - youtubeId: the id from a YouTube link (youtube.com/watch?v=<id> or youtu.be/<id>)
+ * - src: a video file in /public, e.g. "/videos/become-a-faculty.mp4"
+ * Leave both empty to show a "coming soon" placeholder.
+ */
+export const facultyVideo = {
+  youtubeId: "",
+  src: "",
+  poster: "",
+} as const;
+
 export type Accent = "green" | "navy" | "gold";
 
 export const navLinks = [

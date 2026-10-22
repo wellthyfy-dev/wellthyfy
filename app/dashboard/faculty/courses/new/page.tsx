@@ -28,7 +28,8 @@ export default async function NewCoursePage() {
             Create a <span className="text-gradient-brand">course</span>
           </h1>
           <p className="mt-3 text-base text-ink-soft">
-            Published courses appear on the Wellthyfy site where students can enrol.
+            Fill in your course and submit it for review. Once the Wellthyfy team approves it, it
+            appears on the site where students can enrol.
           </p>
 
           <div className="mt-9 rounded-3xl border border-navy-900/7 bg-white/90 p-6 shadow-lift backdrop-blur-md sm:p-8">

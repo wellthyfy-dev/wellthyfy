@@ -2,33 +2,19 @@ import Image from "next/image";
 import { cn } from "@/lib/accents";
 
 /**
- * Brand lockup built from the real logo artwork: the circular emblem beside
- * the actual "Wellthyfy / LIFESTYLE VENTURES" wordmark.
+ * The full Wellthyfy logo — emblem, "Wellthyfy" and "LIFESTYLE VENTURES" in
+ * one artwork (`public/logo-full.webp`, trimmed, transparent, ~3.6 : 1).
  *
- * The supplied logo (`public/logo-full.png`) is a *stacked* lockup — emblem
- * over wordmark over tagline. At a header height of 80px that whole stack is
- * only ~82px wide, which renders "LIFESTYLE VENTURES" and the tagline at four
- * or five pixels tall. So the emblem and wordmark are cropped from the
- * full-resolution source and set side by side instead, which keeps the real
- * typography legible in a horizontal bar.
- *
- * Sizes are Tailwind classes rather than inline styles so the lockup can scale
- * per breakpoint. At full size it is ~254px wide, which does not fit beside a
- * menu button on a phone, so the header steps down on small screens.
+ * Heights are Tailwind classes so the logo can scale per breakpoint; width
+ * follows the artwork's aspect ratio. The header steps down on small screens
+ * so it fits beside the menu button, and stays clear of the centred nav links
+ * on desktop.
  */
 const VARIANTS = {
-  /** 56px → 72px → 88px emblem. */
-  header: {
-    emblem: "size-14 sm:size-18 md:size-28",
-    wordmark: "h-[1.8rem] sm:h-[2.3rem] md:h-[4.5rem]",
-    gap: "gap-2.5 ",
-  },
-  /** 80px emblem — the footer has room for the full lockup at every width. */
-  footer: {
-    emblem: "size-20",
-    wordmark: "h-[4.5rem]",
-    gap: "gap-3.5",
-  },
+  /** ≈174px → 232px → 247px wide. */
+  header: "h-12 sm:h-16 md:h-[4.25rem]",
+  /** ≈290px wide — the footer has room at every width. */
+  footer: "h-20",
 } as const;
 
 export function Logo({
@@ -40,28 +26,15 @@ export function Logo({
   className?: string;
   priority?: boolean;
 }) {
-  const size = VARIANTS[variant];
-
   return (
-    <span className={cn("flex items-center", size.gap, className)}>
-      <Image
-        src="/logo-mark.webp"
-        alt=""
-        width={160}
-        height={160}
-        priority={priority}
-        sizes="88px"
-        className={cn("shrink-0 drop-shadow-sm transition-all duration-300", size.emblem)}
-      />
-      <Image
-        src="/logo-wordmark.webp"
-        alt="Wellthyfy Lifestyle Ventures"
-        width={900}
-        height={230}
-        priority={priority}
-        sizes="180px"
-        className={cn("w-auto shrink-0 transition-all duration-300", size.wordmark)}
-      />
-    </span>
+    <Image
+      src="/logo-full.webp"
+      alt="Wellthyfy Lifestyle Ventures"
+      width={1200}
+      height={331}
+      priority={priority}
+      sizes="(max-width: 640px) 180px, 300px"
+      className={cn("w-auto shrink-0 transition-all duration-300", VARIANTS[variant], className)}
+    />
   );
 }

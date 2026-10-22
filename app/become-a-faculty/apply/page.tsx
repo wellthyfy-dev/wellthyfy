@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, BadgeCheck } from "lucide-react";
 import FacultyApplyForm from "@/components/platform/FacultyApplyForm";
 
 export const metadata: Metadata = {
   title: "Apply to become a Faculty",
-  description: "Apply to teach on Wellthyfy: your details, a government ID, and your course.",
+  description: "Apply to teach on Wellthyfy — free, no registration fee. Your details, your qualification, and your PAN and Aadhaar cards.",
   alternates: { canonical: "/become-a-faculty/apply" },
 };
 
@@ -26,8 +26,14 @@ export default function ApplyPage() {
             Apply to become a <span className="text-gradient-brand">faculty</span>
           </h1>
           <p className="mt-4 text-base leading-relaxed text-ink-soft sm:text-lg">
-            Three short sections: who you are, a government ID, and the course you want to teach.
-            When you submit, our team is notified straight away.
+            Three short sections: your contact details, your qualification, and your PAN and
+            Aadhaar cards for verification. Once you are approved, you get a Wellthyfy mail id to
+            sign up and create your course.
+          </p>
+
+          <p className="mt-6 inline-flex items-center gap-2.5 rounded-full border-2 border-gold-400 bg-gold-50 px-5 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-gold-800 shadow-glow-gold sm:text-sm">
+            <BadgeCheck className="size-5 shrink-0 text-gold-600" strokeWidth={2.2} />
+            No registration fee<span className="hidden sm:inline"> · 100% free to apply</span>
           </p>
 
           <div className="mt-10">

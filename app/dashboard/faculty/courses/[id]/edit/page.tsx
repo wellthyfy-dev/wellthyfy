@@ -49,7 +49,7 @@ export default async function EditCoursePage({
                 Edit <span className="text-gradient-brand">course</span>
               </h1>
               <p className="mt-3 text-base text-ink-soft">
-                Changes go live as soon as you save.
+                Changes are reviewed by the Wellthyfy team before they appear on the site.
               </p>
             </div>
 

@@ -9,6 +9,7 @@ import { cn } from "@/lib/accents";
 import {
   APPLICATION_STATUS_LABELS,
   ID_TYPE_LABELS,
+  idSummary,
   type ApplicationStatus,
   type FacultyApplication,
 } from "@/lib/faculty";
@@ -25,11 +26,11 @@ const TONE: Record<ApplicationStatus, string> = {
 const NOTICES: Record<string, { tone: "ok" | "warn"; text: string }> = {
   approved: {
     tone: "ok",
-    text: "Approved. The course is live and the invitation email has been sent to the applicant.",
+    text: "Approved. The invitation email with their mail id has been sent to the applicant.",
   },
   "approved-nomail": {
     tone: "warn",
-    text: "Approved and the course is live, but the invitation email could not be sent. Copy the invitation link below and send it to the applicant yourself.",
+    text: "Approved, but the invitation email could not be sent. Copy the invitation link below and send it to the applicant yourself.",
   },
   rejected: { tone: "ok", text: "Application rejected and the applicant has been notified." },
   "rejected-nomail": {
@@ -37,7 +38,10 @@ const NOTICES: Record<string, { tone: "ok" | "warn"; text: string }> = {
     text: "Application rejected, but the notification email could not be sent.",
   },
   resent: { tone: "ok", text: "Invitation email sent again." },
-  "resend-failed": { tone: "warn", text: "The invitation email could not be sent. Try again, or copy the link." },
+  "resend-failed": {
+    tone: "warn",
+    text: "The invitation email could not be sent. Try again, or copy the link.",
+  },
   "resend-unavailable": {
     tone: "warn",
     text: "There is no open invitation to resend (the account may already exist).",
@@ -87,7 +91,11 @@ export default async function ApplicationDetail({
   const { notice } = await searchParams;
   const { supabase } = await requireAdmin();
 
-  const { data } = await supabase.from("faculty_applications").select("*").eq("id", id).maybeSingle();
+  const { data } = await supabase
+    .from("faculty_applications")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
   const a = (data as FacultyApplication | null) ?? null;
   if (!a) notFound();
 
@@ -97,7 +105,11 @@ export default async function ApplicationDetail({
     const { data } = await supabase.storage.from("applications").createSignedUrl(path, 600);
     return data?.signedUrl ?? null;
   };
-  const [frontUrl, backUrl] = await Promise.all([sign(a.id_front_path), sign(a.id_back_path)]);
+  const [frontUrl, backUrl, panUrl] = await Promise.all([
+    sign(a.id_front_path),
+    sign(a.id_back_path),
+    sign(a.pan_path),
+  ]);
 
   const { data: courseRow } = await supabase
     .from("courses")
@@ -106,14 +118,21 @@ export default async function ApplicationDetail({
     .maybeSingle();
 
   const origin = await siteOrigin();
-  const meta = CATEGORY_META[a.category];
+  const meta = a.category ? CATEGORY_META[a.category] : null;
   const banner = notice ? NOTICES[notice] : undefined;
   const modulesUrl = modulesPdfUrl(a.modules_pdf_path);
-  const modules = (a.course_modules ?? "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const modules = (a.course_modules ?? "")
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
 
+  const idName = ID_TYPE_LABELS[a.id_type];
   const idFiles = [
-    { label: "Front", url: frontUrl, path: a.id_front_path },
-    ...(a.id_back_path ? [{ label: "Back", url: backUrl, path: a.id_back_path }] : []),
+    ...(a.pan_path ? [{ label: "PAN card", url: panUrl, path: a.pan_path }] : []),
+    { label: a.pan_path ? `${idName} — front` : "Front", url: frontUrl, path: a.id_front_path },
+    ...(a.id_back_path
+      ? [{ label: a.pan_path ? `${idName} — back` : "Back", url: backUrl, path: a.id_back_path }]
+      : []),
   ];
 
   return (
@@ -149,8 +168,7 @@ export default async function ApplicationDetail({
         <div className="min-w-0">
           <h2 className="text-2xl font-semibold sm:text-3xl">{a.full_name}</h2>
           <p className="mt-1.5 text-sm text-ink-soft">
-            Applied to teach <span className="font-semibold text-ink">{a.course_title}</span> ·
-            submitted{" "}
+            Faculty application · submitted{" "}
             {new Date(a.created_at).toLocaleString("en-IN", {
               day: "numeric",
               month: "short",
@@ -161,10 +179,7 @@ export default async function ApplicationDetail({
           </p>
         </div>
         <span
-          className={cn(
-            "rounded-full border px-3.5 py-1.5 text-xs font-semibold",
-            TONE[a.status],
-          )}
+          className={cn("rounded-full border px-3.5 py-1.5 text-xs font-semibold", TONE[a.status])}
         >
           {APPLICATION_STATUS_LABELS[a.status]}
         </span>
@@ -182,15 +197,21 @@ export default async function ApplicationDetail({
               <Fact label="Phone">{a.phone}</Fact>
               <Fact label="WhatsApp">{a.whatsapp}</Fact>
               <Fact label="Address">{a.address}</Fact>
-              <div className="sm:col-span-2">
-                <Fact label="Background">
-                  <span className="whitespace-pre-wrap">{a.experience}</span>
-                </Fact>
-              </div>
             </dl>
           </Block>
 
-          <Block title={`Government ID — ${ID_TYPE_LABELS[a.id_type]}`}>
+          <Block title="Qualification">
+            <dl className="grid gap-5">
+              <Fact label="Qualification">
+                <span className="whitespace-pre-wrap">{a.qualification}</span>
+              </Fact>
+              <Fact label="Teaching experience">
+                <span className="whitespace-pre-wrap">{a.experience}</span>
+              </Fact>
+            </dl>
+          </Block>
+
+          <Block title={`Verification — ${idSummary(a)}`}>
             <p className="mb-4 flex items-start gap-2 text-xs leading-relaxed text-ink-soft">
               <Info className="mt-0.5 size-3.5 shrink-0" />
               Private files. These links expire after 10 minutes — reload the page for fresh ones.
@@ -218,11 +239,16 @@ export default async function ApplicationDetail({
                         Open PDF
                       </a>
                     ) : (
-                      <a href={f.url} target="_blank" rel="noopener noreferrer" className="group block">
+                      <a
+                        href={f.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group block"
+                      >
                         <span className="relative block aspect-[3/2] overflow-hidden rounded-xl border border-navy-900/10 bg-navy-50">
                           <Image
                             src={f.url}
-                            alt={`${f.label} of ${ID_TYPE_LABELS[a.id_type]}`}
+                            alt={f.label}
                             fill
                             unoptimized
                             sizes="(max-width: 640px) 100vw, 360px"
@@ -241,73 +267,74 @@ export default async function ApplicationDetail({
             </div>
           </Block>
 
-          <Block title="Proposed course">
-            <dl className="grid gap-5 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <Fact label="Title">
-                  <span className="text-base font-semibold">{a.course_title}</span>
-                </Fact>
-              </div>
-              <Fact label="Category">
-                {meta.label} · {a.subcategory}
-              </Fact>
-              <Fact label="Fee">
-                <span className="font-semibold">{formatINR(a.fee_inr)}</span>
-              </Fact>
-              <Fact label="Mode">{MODE_LABELS[a.mode]}</Fact>
-              <Fact label="Duration">{a.duration}</Fact>
-              <Fact label="Level">{a.level}</Fact>
-              <Fact label="Language">{a.language}</Fact>
-              {a.course_summary && (
+          {a.course_title && (
+            <Block title="Proposed course (older application)">
+              <dl className="grid gap-5 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <Fact label="Summary">{a.course_summary}</Fact>
+                  <Fact label="Title">
+                    <span className="text-base font-semibold">{a.course_title}</span>
+                  </Fact>
                 </div>
-              )}
-              <div className="sm:col-span-2">
-                <Fact label="Description">
-                  <span className="whitespace-pre-wrap">{a.course_description}</span>
+                <Fact label="Category">
+                  {meta?.label} · {a.subcategory}
                 </Fact>
-              </div>
-              <div className="sm:col-span-2">
-                <Fact label="Modules">
-                  {modulesUrl ? (
-                    <a
-                      href={modulesUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-1 inline-flex items-center gap-2 rounded-full border border-navy-200 bg-white px-4 py-2 text-sm font-semibold text-navy-800 transition-colors hover:bg-navy-50"
-                    >
-                      <FileText className="size-4" />
-                      Open modules PDF
-                      <ExternalLink className="size-3.5" />
-                    </a>
-                  ) : modules.length > 0 ? (
-                    <ol className="mt-1 grid gap-1.5">
-                      {modules.map((m, i) => (
-                        <li key={`${i}-${m}`} className="flex gap-2.5">
-                          <span className="w-5 shrink-0 text-right font-semibold tabular-nums text-navy-700/50">
-                            {i + 1}
-                          </span>
-                          <span>{m}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  ) : (
-                    <span className="text-ink-soft">Not provided</span>
-                  )}
+                <Fact label="Fee">
+                  <span className="font-semibold">
+                    {a.fee_inr == null ? "—" : formatINR(a.fee_inr)}
+                  </span>
                 </Fact>
-              </div>
-            </dl>
-          </Block>
+                <Fact label="Mode">{a.mode ? MODE_LABELS[a.mode] : null}</Fact>
+                <Fact label="Duration">{a.duration}</Fact>
+                <Fact label="Level">{a.level}</Fact>
+                <Fact label="Language">{a.language}</Fact>
+                {a.course_summary && (
+                  <div className="sm:col-span-2">
+                    <Fact label="Summary">{a.course_summary}</Fact>
+                  </div>
+                )}
+                <div className="sm:col-span-2">
+                  <Fact label="Description">
+                    <span className="whitespace-pre-wrap">{a.course_description}</span>
+                  </Fact>
+                </div>
+                <div className="sm:col-span-2">
+                  <Fact label="Modules">
+                    {modulesUrl ? (
+                      <a
+                        href={modulesUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1 inline-flex items-center gap-2 rounded-full border border-navy-200 bg-white px-4 py-2 text-sm font-semibold text-navy-800 transition-colors hover:bg-navy-50"
+                      >
+                        <FileText className="size-4" />
+                        Open modules PDF
+                        <ExternalLink className="size-3.5" />
+                      </a>
+                    ) : modules.length > 0 ? (
+                      <ol className="mt-1 grid gap-1.5">
+                        {modules.map((m, i) => (
+                          <li key={`${i}-${m}`} className="flex gap-2.5">
+                            <span className="w-5 shrink-0 text-right font-semibold tabular-nums text-navy-700/50">
+                              {i + 1}
+                            </span>
+                            <span>{m}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <span className="text-ink-soft">Not provided</span>
+                    )}
+                  </Fact>
+                </div>
+              </dl>
+            </Block>
+          )}
         </div>
 
         {/* Decision rail */}
         <aside className="grid content-start gap-5 lg:sticky lg:top-28 lg:self-start">
           {a.status === "pending" && (
-            <ReviewPanel
-              applicationId={a.id}
-              suggestedLocalPart={suggestLocalPart(a.full_name)}
-            />
+            <ReviewPanel applicationId={a.id} suggestedLocalPart={suggestLocalPart(a.full_name)} />
           )}
 
           {a.status === "approved" && (
@@ -322,7 +349,9 @@ export default async function ApplicationDetail({
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-navy-700/60">
                     Faculty mail id
                   </p>
-                  <p className="mt-1 break-all text-sm font-semibold text-ink">{a.assigned_email}</p>
+                  <p className="mt-1 break-all text-sm font-semibold text-ink">
+                    {a.assigned_email}
+                  </p>
                 </div>
 
                 {a.faculty_user_id ? (
@@ -355,7 +384,9 @@ export default async function ApplicationDetail({
                     href={`/courses/${courseRow.slug}`}
                     className="inline-flex items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-well-600 to-navy-700 px-5 py-2.5 text-sm font-semibold text-white"
                   >
-                    {courseRow.status === "published" ? "View live course" : "View course (unpublished)"}
+                    {courseRow.status === "published"
+                      ? "View live course"
+                      : "View course (unpublished)"}
                     <ExternalLink className="size-3.5" />
                   </Link>
                 )}

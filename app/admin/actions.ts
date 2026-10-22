@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { FACULTY_DOMAIN, isFacultyEmail, type FacultyApplication } from "@/lib/faculty";
-import { applicationApprovedEmail, applicationRejectedEmail } from "@/lib/faculty-emails";
+import {
+  applicationApprovedEmail,
+  applicationRejectedEmail,
+  courseApprovedEmail,
+  courseRejectedEmail,
+} from "@/lib/faculty-emails";
 import { adminRecipients, sendMail } from "@/lib/mailer";
 import type { CourseStatus, OrderStatus } from "@/lib/platform";
 import { siteOrigin } from "@/lib/site-origin";
@@ -18,14 +23,18 @@ function revalidatePublic() {
   revalidatePath("/");
   revalidatePath("/courses");
   revalidatePath("/admin", "layout");
+  revalidatePath("/dashboard/faculty");
 }
 
+// ── Faculty applications ─────────────────────────────────────────────────────
+
 /**
- * Approve an application.
+ * Approve an applicant.
  *
- * The database function does the real work in one transaction: it publishes
- * the course and stores the assigned mail id and the private invite token. Only
- * after that succeeds do we email the applicant.
+ * The database function stores the assigned mail id and the private invite
+ * token in one transaction. Only after that succeeds do we email the applicant.
+ * No course is created here — faculty create courses after signing up, and
+ * each one is reviewed separately.
  */
 export async function approveApplication(
   _prev: ReviewState,
@@ -48,11 +57,11 @@ export async function approveApplication(
   });
   if (error) return { error: error.message };
 
-  const { token, slug } = data as { token: string; slug: string; course_id: string };
+  const { token } = data as { token: string };
 
   const { data: app } = await supabase
     .from("faculty_applications")
-    .select("full_name, contact_email, course_title")
+    .select("full_name, contact_email")
     .eq("id", id)
     .single();
 
@@ -64,11 +73,9 @@ export async function approveApplication(
       replyTo: adminRecipients(),
       ...applicationApprovedEmail({
         fullName: app.full_name,
-        courseTitle: app.course_title,
         facultyEmail: email,
         joinUrl: `${origin}/faculty/join?token=${token}`,
         loginUrl: `${origin}/faculty/login`,
-        courseUrl: `${origin}/courses/${slug}`,
         note: note || null,
       }),
     });
@@ -76,7 +83,7 @@ export async function approveApplication(
     if (!result.ok) console.warn("[admin] approval email failed:", result.error);
   }
 
-  revalidatePublic();
+  revalidatePath("/admin", "layout");
   redirect(`/admin/applications/${id}?notice=${mailed ? "approved" : "approved-nomail"}`);
 }
 
@@ -91,7 +98,7 @@ export async function rejectApplication(
 
   const { data: app } = await supabase
     .from("faculty_applications")
-    .select("full_name, contact_email, course_title")
+    .select("full_name, contact_email")
     .eq("id", id)
     .single();
 
@@ -106,11 +113,7 @@ export async function rejectApplication(
     const result = await sendMail({
       to: app.contact_email,
       replyTo: adminRecipients(),
-      ...applicationRejectedEmail({
-        fullName: app.full_name,
-        courseTitle: app.course_title,
-        note: note || null,
-      }),
+      ...applicationRejectedEmail({ fullName: app.full_name, note: note || null }),
     });
     mailed = result.ok;
     if (!result.ok) console.warn("[admin] rejection email failed:", result.error);
@@ -136,29 +139,126 @@ export async function resendInvite(form: FormData) {
     redirect(`/admin/applications/${id}?notice=resend-unavailable`);
   }
 
-  const { data: course } = await supabase
-    .from("courses")
-    .select("slug")
-    .eq("application_id", id)
-    .maybeSingle();
-
   const origin = await siteOrigin();
   const result = await sendMail({
     to: app.contact_email,
     replyTo: adminRecipients(),
     ...applicationApprovedEmail({
       fullName: app.full_name,
-      courseTitle: app.course_title,
       facultyEmail: app.assigned_email,
       joinUrl: `${origin}/faculty/join?token=${app.invite_token}`,
       loginUrl: `${origin}/faculty/login`,
-      courseUrl: course ? `${origin}/courses/${course.slug}` : origin,
       note: app.admin_note,
     }),
   });
 
   redirect(`/admin/applications/${id}?notice=${result.ok ? "resent" : "resend-failed"}`);
 }
+
+// ── Course review ────────────────────────────────────────────────────────────
+
+/** Loads what the decision emails need: the course and its faculty's contact. */
+async function courseForDecision(supabase: Awaited<ReturnType<typeof requireAdmin>>["supabase"], id: string) {
+  const { data: course } = await supabase
+    .from("courses")
+    .select("id, title, slug, status, faculty_id, faculty_name")
+    .eq("id", id)
+    .maybeSingle();
+  if (!course) return null;
+  const { data: faculty } = course.faculty_id
+    ? await supabase.from("profiles").select("email, full_name").eq("id", course.faculty_id).maybeSingle()
+    : { data: null };
+  return { course, faculty };
+}
+
+export async function approveCourse(_prev: ReviewState, form: FormData): Promise<ReviewState> {
+  const { supabase } = await requireAdmin();
+  const id = field(form, "id", 60);
+
+  const found = await courseForDecision(supabase, id);
+  if (!found) return { error: "That course was not found." };
+  if (found.course.status !== "pending_review") {
+    return { error: "This course is not waiting for review." };
+  }
+
+  const now = new Date().toISOString();
+  const { error } = await supabase
+    .from("courses")
+    .update({ status: "published", published_at: now, reviewed_at: now, review_note: null })
+    .eq("id", id)
+    .eq("status", "pending_review");
+  if (error) return { error: error.message };
+
+  let mailed = !found.faculty;
+  if (found.faculty) {
+    const origin = await siteOrigin();
+    const result = await sendMail({
+      to: found.faculty.email,
+      replyTo: adminRecipients(),
+      ...courseApprovedEmail({
+        fullName: found.faculty.full_name || found.course.faculty_name || "there",
+        title: found.course.title,
+        courseUrl: `${origin}/courses/${found.course.slug}`,
+      }),
+    });
+    mailed = result.ok;
+    if (!result.ok) console.warn("[admin] course approval email failed:", result.error);
+  }
+
+  revalidatePublic();
+  revalidatePath(`/courses/${found.course.slug}`);
+  redirect(`/admin/courses/${id}?notice=${mailed ? "approved" : "approved-nomail"}`);
+}
+
+export async function rejectCourse(_prev: ReviewState, form: FormData): Promise<ReviewState> {
+  const { supabase } = await requireAdmin();
+  const id = field(form, "id", 60);
+  const note = field(form, "note");
+
+  if (note.length < 5) {
+    return { error: "Tell the faculty what to change — it is shown to them." };
+  }
+
+  const found = await courseForDecision(supabase, id);
+  if (!found) return { error: "That course was not found." };
+  if (found.course.status !== "pending_review") {
+    return { error: "This course is not waiting for review." };
+  }
+
+  const { error } = await supabase
+    .from("courses")
+    .update({
+      status: "rejected",
+      published_at: null,
+      reviewed_at: new Date().toISOString(),
+      review_note: note,
+    })
+    .eq("id", id)
+    .eq("status", "pending_review");
+  if (error) return { error: error.message };
+
+  let mailed = !found.faculty;
+  if (found.faculty) {
+    const origin = await siteOrigin();
+    const result = await sendMail({
+      to: found.faculty.email,
+      replyTo: adminRecipients(),
+      ...courseRejectedEmail({
+        fullName: found.faculty.full_name || found.course.faculty_name || "there",
+        title: found.course.title,
+        note,
+        dashboardUrl: `${origin}/dashboard/faculty`,
+      }),
+    });
+    mailed = result.ok;
+    if (!result.ok) console.warn("[admin] course rejection email failed:", result.error);
+  }
+
+  revalidatePublic();
+  redirect(`/admin/courses/${id}?notice=${mailed ? "rejected" : "rejected-nomail"}`);
+}
+
+// ── Payments and live courses ────────────────────────────────────────────────
 
 export async function setOrderStatusAdmin(form: FormData) {
   const { supabase } = await requireAdmin();
@@ -176,6 +276,7 @@ export async function setOrderStatusAdmin(form: FormData) {
   revalidatePath("/dashboard/faculty");
 }
 
+/** Take a live course off the site, or put a previously approved one back. */
 export async function setCourseStatusAdmin(form: FormData) {
   const { supabase } = await requireAdmin();
   const id = field(form, "id", 60);
@@ -187,6 +288,7 @@ export async function setCourseStatusAdmin(form: FormData) {
     .update({
       status,
       published_at: status === "published" ? new Date().toISOString() : null,
+      ...(status === "published" ? { reviewed_at: new Date().toISOString(), review_note: null } : {}),
     })
     .eq("id", id);
 

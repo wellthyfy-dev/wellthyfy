@@ -19,6 +19,7 @@ import { Icon } from "@/components/ui/Icon";
 import { accentStyles, cn } from "@/lib/accents";
 import {
   CATEGORY_META,
+  COURSE_STATUS_LABELS,
   MODE_LABELS,
   STATUS_LABELS,
   formatINR,
@@ -146,7 +147,8 @@ export default async function CourseDetailPage({
               </span>
               {course.status !== "published" && (
                 <span className="rounded-full border border-gold-200 bg-gold-50 px-3 py-1.5 text-[11px] font-semibold text-gold-800">
-                  Draft — only you can see this
+                  {COURSE_STATUS_LABELS[course.status]} — not visible to the public
+
                 </span>
               )}
             </div>

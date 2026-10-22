@@ -97,8 +97,8 @@ export default function ReviewPanel({
           </div>
 
           <div className="rounded-xl border border-well-200 bg-well-50/70 px-4 py-3 text-xs leading-relaxed text-ink-soft">
-            Approving publishes the course on the website immediately and emails the applicant
-            their mail id and a private link to create their faculty account.
+            Approving emails the applicant their mail id and a private link to create their
+            faculty account. They then create courses, and you approve each course separately.
           </div>
 
           <ErrorLine message={approveState.error} />
@@ -116,7 +116,7 @@ export default function ReviewPanel({
             ) : (
               <>
                 <BadgeCheck className="size-4.5" strokeWidth={2.2} />
-                Approve and publish course
+                Approve applicant
               </>
             )}
           </button>

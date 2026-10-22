@@ -13,11 +13,15 @@ export const dynamic = "force-dynamic";
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const { supabase, profile } = await requireAdmin();
 
-  const [apps, payments] = await Promise.all([
+  const [apps, courses, payments] = await Promise.all([
     supabase
       .from("faculty_applications")
       .select("id", { count: "exact", head: true })
       .eq("status", "pending"),
+    supabase
+      .from("courses")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending_review"),
     supabase.from("orders").select("id", { count: "exact", head: true }).eq("status", "pending"),
   ]);
 
@@ -56,7 +60,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             { href: "/admin", label: "Overview" },
             { href: "/admin/applications", label: "Applications", badge: apps.count ?? 0 },
             { href: "/admin/payments", label: "Payments", badge: payments.count ?? 0 },
-            { href: "/admin/courses", label: "Courses" },
+            { href: "/admin/courses", label: "Courses", badge: courses.count ?? 0 },
           ]}
         />
 

@@ -8,16 +8,19 @@ import {
   ChevronDown,
   ClipboardList,
   LayoutDashboard,
+  Headset,
   Layers,
+  MailCheck,
+  Megaphone,
   Sparkles,
-  Users,
 } from "lucide-react";
+import FacultyVideo from "@/components/sections/FacultyVideo";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/ui/Reveal";
 import { Eyebrow, SectionHeading } from "@/components/ui/SectionHeading";
 import { siteConfig } from "@/lib/site";
 
 const description =
-  "Teach any skill in your own module and earn with Wellthyfy. Apply, get your course approved, and receive bi-weekly payouts.";
+  "Teach any skill in your own module and earn with Wellthyfy. Apply, get approved, publish your course and receive monthly payouts. No registration fee.";
 
 export const metadata: Metadata = {
   title: "Become a Faculty",
@@ -34,26 +37,69 @@ const steps = [
   {
     n: "01",
     icon: ClipboardList,
-    title: "Apply for faculty",
-    body: "Tell us about yourself, share a government ID so we can verify you, and describe the course you want to teach — your modules and your fee.",
+    title: "Apply",
+    body: "Share your contact details, your qualification, and your PAN and Aadhaar cards for verification. Free — no registration fee.",
     tile: "from-well-400 to-well-600",
     glow: "shadow-glow-green",
   },
   {
     n: "02",
     icon: BadgeCheck,
-    title: "Get your course approved",
-    body: "Our team reviews your application. Once approved, your course goes live on wellthyfy.in and you receive your Wellthyfy faculty mail id.",
+    title: "Get approved",
+    body: "Our team reviews your application. Once approved, you receive your own @wellthyfy.in faculty mail id.",
     tile: "from-navy-500 to-navy-800",
     glow: "shadow-glow-navy",
   },
   {
     n: "03",
+    icon: LayoutDashboard,
+    title: "Create your course",
+    body: "Sign up with your Wellthyfy mail id and build your course from your dashboard — details, banner, modules PDF and fee.",
+    tile: "from-well-400 to-navy-700",
+    glow: "shadow-glow-green",
+  },
+  {
+    n: "04",
+    icon: BookOpenCheck,
+    title: "Course goes live",
+    body: "Submit it for review. As soon as our team approves it, your course is published on wellthyfy.in.",
+    tile: "from-navy-500 to-navy-800",
+    glow: "shadow-glow-navy",
+  },
+  {
+    n: "05",
     icon: CalendarClock,
-    title: "Earn with bi-weekly payouts",
-    body: "Students enrol and pay through Wellthyfy. Your earnings are paid out to you every two weeks.",
+    title: "Earn monthly",
+    body: "Students enrol and pay through Wellthyfy. Your earnings are paid out to you every month.",
     tile: "from-gold-400 to-gold-600",
     glow: "shadow-glow-gold",
+  },
+];
+
+const advantages = [
+  {
+    icon: MailCheck,
+    title: "Your own Wellthyfy mail ID",
+    body: "Every approved faculty gets a professional @wellthyfy.in mail ID — your identity on the platform.",
+    tile: "from-well-400 to-well-600",
+  },
+  {
+    icon: Megaphone,
+    title: "We promote your course",
+    body: "We market your course across our website and channels to bring students to you, so you can focus on teaching.",
+    tile: "from-navy-500 to-navy-800",
+  },
+  {
+    icon: LayoutDashboard,
+    title: "Your own dashboard",
+    body: "Create and manage your courses, track their review status and see every student who enrols — all in one place.",
+    tile: "from-well-500 to-navy-700",
+  },
+  {
+    icon: Headset,
+    title: "24×7 support",
+    body: "Our team is here round the clock to help you with your course, your students and your payouts.",
+    tile: "from-gold-400 to-gold-600",
   },
 ];
 
@@ -66,17 +112,7 @@ const perks = [
   {
     icon: Sparkles,
     title: "Any skill, any field",
-    body: "Health & wellness, wealth, happiness — or choose Other for anything you are good at.",
-  },
-  {
-    icon: Users,
-    title: "Students find you",
-    body: "Your course gets its own page on Wellthyfy, with enrolment and payment collection handled for you.",
-  },
-  {
-    icon: LayoutDashboard,
-    title: "Your faculty dashboard",
-    body: "Once approved you get your own dashboard to manage your courses and see who has enrolled.",
+    body: "Wellness, wealthiness, happiness — or choose Other for anything you are good at.",
   },
 ];
 
@@ -96,23 +132,27 @@ const topics = [
 const faqs = [
   {
     q: "Who can apply?",
-    a: "Anyone with a skill worth teaching. We ask for a government ID so we can verify who you are before anything goes live.",
+    a: "Anyone with a skill worth teaching. We ask for your qualification, PAN card and Aadhaar card so we can verify who you are.",
+  },
+  {
+    q: "Is there a registration fee?",
+    a: "No. Applying and becoming a Wellthyfy faculty is completely free — there is no registration fee.",
   },
   {
     q: "What do I need to apply?",
-    a: "Your contact details, a government ID, and your course: its title, description, modules and the fee you would like to charge.",
+    a: "Your name and contact details, your qualification, your PAN card, and both sides of your Aadhaar card. You add your course later, after you are approved.",
   },
   {
     q: "What happens after I apply?",
-    a: "Our team reviews your application. If it is approved, your course goes live and we email you your Wellthyfy faculty mail id together with a private link to create your faculty account.",
+    a: "Our team reviews your application. If it is approved, we email you your @wellthyfy.in faculty mail id and a private link to create your faculty account. From your dashboard you then create your course and submit it — every course is approved by our team before it goes live.",
   },
   {
     q: "Do I set my own fee?",
-    a: "Yes. You propose the fee in your application, and it appears on your course page once approved.",
+    a: "Yes. You set the fee when you create your course, and it appears on your course page once the course is approved.",
   },
   {
     q: "How do I get paid?",
-    a: "Students pay through Wellthyfy and your earnings are paid out to you every two weeks.",
+    a: "Students pay through Wellthyfy and your earnings are paid out to you every month.",
   },
 ];
 
@@ -134,8 +174,14 @@ export default function BecomeFacultyPage() {
               </h1>
             </Reveal>
 
+            <Reveal delay={0.12}>
+              <p className="mt-6 font-display text-xl font-medium italic text-navy-800 sm:text-2xl">
+                Share your knowledge with the world — and inspire every learner you reach.
+              </p>
+            </Reveal>
+
             <Reveal delay={0.16}>
-              <p className="mt-7 max-w-2xl text-base leading-relaxed text-ink-soft sm:text-lg">
+              <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft sm:text-lg">
                 Become a faculty in the Wellthyfy venture. Teach any skill, in your own module —
                 we bring the platform, the students and the payments, and you bring the
                 expertise.
@@ -155,15 +201,22 @@ export default function BecomeFacultyPage() {
                   href="#how-it-works"
                   className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-navy-200 bg-white/80 px-8 py-4 text-base font-semibold text-navy-800 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-navy-300 hover:bg-white hover:shadow-soft sm:w-auto"
                 >
-                  How you earn
+                  See how it works
                   <ChevronDown className="size-4.5" />
                 </a>
               </div>
             </Reveal>
 
+            <Reveal delay={0.28}>
+              <p className="mt-7 inline-flex items-center gap-2.5 rounded-full border-2 border-gold-400 bg-gold-50 px-5 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-gold-800 shadow-glow-gold sm:text-sm">
+                <BadgeCheck className="size-5 shrink-0 text-gold-600" strokeWidth={2.2} />
+                No registration fee<span className="hidden sm:inline"> · 100% free to join</span>
+              </p>
+            </Reveal>
+
             <Reveal delay={0.32}>
-              <ul className="mt-12 flex flex-wrap items-center justify-center gap-3">
-                {["Any skill", "Your own module", "Bi-weekly payouts"].map((t) => (
+              <ul className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                {["Any skill", "Your own module", "Monthly payouts"].map((t) => (
                   <li
                     key={t}
                     className="inline-flex items-center gap-2 rounded-full border border-well-200 bg-white/80 px-4 py-2 text-sm font-medium text-navy-800 shadow-sm backdrop-blur-sm"
@@ -178,26 +231,74 @@ export default function BecomeFacultyPage() {
         </div>
       </section>
 
-      {/* ── How to earn ──────────────────────────────────────────────────── */}
+      {/* ── Faculty advantages ───────────────────────────────────────────── */}
+      <section id="advantages" className="relative scroll-mt-28 py-20 sm:py-24">
+        <div className="container-page">
+          <SectionHeading
+            eyebrow="Faculty advantages"
+            title="Everything you need"
+            highlight="to teach and grow"
+            description="When you join Wellthyfy as a faculty, you are never on your own."
+          />
+
+          <StaggerGroup className="mt-14 grid gap-6 sm:grid-cols-2 lg:mt-16 lg:grid-cols-4">
+            {advantages.map((item) => (
+              <StaggerItem key={item.title} className="h-full">
+                <article className="group h-full rounded-3xl border border-navy-900/7 bg-white/90 p-7 shadow-soft backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-lift">
+                  <span
+                    className={`grid size-14 place-items-center rounded-2xl bg-gradient-to-br ${item.tile} text-white transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6`}
+                  >
+                    <item.icon className="size-7" strokeWidth={1.75} />
+                  </span>
+                  <h3 className="mt-6 text-lg font-semibold">{item.title}</h3>
+                  <p className="mt-2.5 text-[0.93rem] leading-relaxed text-ink-soft">{item.body}</p>
+                </article>
+              </StaggerItem>
+            ))}
+          </StaggerGroup>
+
+          <Reveal>
+            <div className="mx-auto mt-10 flex max-w-3xl flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-gold-300 bg-gold-50/80 px-6 py-6 text-center sm:flex-row sm:gap-5 sm:text-left">
+              <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-gold-400 to-gold-600 text-white shadow-glow-gold">
+                <BadgeCheck className="size-6" strokeWidth={2} />
+              </span>
+              <p className="text-base text-ink-soft">
+                <span className="block font-display text-xl font-semibold text-gold-800">
+                  No registration fee.
+                </span>
+                It costs nothing to apply or to become a faculty — you only earn.
+              </p>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ── How it works ─────────────────────────────────────────────────── */}
       <section id="how-it-works" className="relative scroll-mt-28 py-20 sm:py-24">
         <div className="container-page">
           <SectionHeading
-            eyebrow="How to earn"
-            title="Three steps from"
+            eyebrow="How it works"
+            title="Five steps from"
             highlight="idea to income"
-            description="No guesswork — here is exactly how it works."
+            description="Watch the walkthrough, then follow the steps — no guesswork."
           />
 
-          <StaggerGroup className="relative mt-14 grid gap-6 lg:mt-16 lg:grid-cols-3 lg:gap-8">
+          <Reveal>
+            <div className="mx-auto mt-12 max-w-4xl lg:mt-14">
+              <FacultyVideo />
+            </div>
+          </Reveal>
+
+          <StaggerGroup className="relative mt-14 grid gap-5 sm:grid-cols-2 lg:mt-16 lg:grid-cols-5 lg:gap-5">
             {/* connector behind the cards on desktop */}
             <div
-              className="pointer-events-none absolute left-[16%] right-[16%] top-14 hidden h-px bg-gradient-to-r from-well-400 via-navy-500 to-gold-500 lg:block"
+              className="pointer-events-none absolute left-[10%] right-[10%] top-14 hidden h-px bg-gradient-to-r from-well-400 via-navy-500 to-gold-500 lg:block"
               aria-hidden="true"
             />
 
             {steps.map((step) => (
               <StaggerItem key={step.n} className="h-full">
-                <article className="group relative h-full rounded-3xl border border-navy-900/7 bg-white/90 p-7 shadow-soft backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-lift">
+                <article className="group relative h-full rounded-3xl border border-navy-900/7 bg-white/90 p-6 shadow-soft backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-lift">
                   <div className="flex items-start justify-between">
                     <span
                       className={`relative z-10 grid size-14 place-items-center rounded-2xl bg-gradient-to-br ${step.tile} ${step.glow} text-white transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6`}
@@ -211,8 +312,8 @@ export default function BecomeFacultyPage() {
                       {step.n}
                     </span>
                   </div>
-                  <h3 className="mt-6 text-xl font-semibold">{step.title}</h3>
-                  <p className="mt-3 text-[0.95rem] leading-relaxed text-ink-soft">{step.body}</p>
+                  <h3 className="mt-6 text-lg font-semibold">{step.title}</h3>
+                  <p className="mt-3 text-[0.92rem] leading-relaxed text-ink-soft">{step.body}</p>
                 </article>
               </StaggerItem>
             ))}
@@ -230,7 +331,7 @@ export default function BecomeFacultyPage() {
             description="You keep full control of what you teach. We take care of everything around it."
           />
 
-          <StaggerGroup className="mt-14 grid gap-6 sm:grid-cols-2 lg:mt-16 lg:grid-cols-4">
+          <StaggerGroup className="mx-auto mt-14 grid max-w-4xl gap-6 sm:grid-cols-2 lg:mt-16">
             {perks.map((perk) => (
               <StaggerItem key={perk.title} className="h-full">
                 <article className="h-full rounded-3xl border border-navy-900/7 bg-white/85 p-6 shadow-soft backdrop-blur-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lift">
@@ -307,7 +408,8 @@ export default function BecomeFacultyPage() {
                 Ready to turn your skill into income?
               </h2>
               <p className="mx-auto mt-5 max-w-xl text-base text-white/85 sm:text-lg">
-                It takes a few minutes to apply. We review every application personally.
+                It takes a few minutes to apply, and there is no registration fee. We review every
+                application personally.
               </p>
               <Link
                 href="/become-a-faculty/apply"

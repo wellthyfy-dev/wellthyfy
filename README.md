@@ -216,16 +216,19 @@ disclaimer — keep it if you keep the course.
 
 Students, faculty and admins sign in with email + password. Project `asldprpmsegjdtyvuett`
 (ap-southeast-1). Schema lives in `supabase/migrations/` (`0001_init.sql`,
-`0002_faculty_program.sql`, `0003_module_pdfs.sql`) and is **already applied** — re-running is safe.
+`0002_faculty_program.sql`, `0003_module_pdfs.sql`, `0004_course_review_status.sql`,
+`0005_faculty_review_flow.sql`, `0006_drop_apply_modules_upload.sql`, `0007_pan_and_aadhaar.sql`) and is **already applied** — re-running is safe. Apply 0004
+before 0005, in separate transactions (a new enum value cannot be used in the transaction that
+adds it).
 
 ### Tables
 
 | Table | Purpose |
 | --- | --- |
 | `profiles` | One row per auth user. Role, `is_admin`, contact details, Aadhaar paths. |
-| `courses` | Courses. `status` gates public visibility. `faculty_id` is null while an approved course is live but its faculty has no account yet. |
+| `courses` | Courses. `status` is `draft` → `pending_review` → `published` (or `rejected` with a `review_note`, or `archived`); only `published` is public. |
 | `orders` | Manual-UPI enrolments: amount, UTR, student contact, pending/verified/rejected. |
-| `faculty_applications` | Applicant details, government ID paths, proposed course, review state and invite token. |
+| `faculty_applications` | Applicant details, qualification, government ID paths, review state and invite token. (Course columns are legacy, null for new applications.) |
 | `admin_emails` | Addresses that become admin when they **confirm** their email. Invisible to the API. |
 
 ### Security model
@@ -237,9 +240,14 @@ used anywhere in the app — if you add it later, keep it server-only.
   columns — **`role` and `is_admin` are not writable by anyone through the API**, enforced
   with column-level grants, and `INSERT` on profiles is revoked entirely. (An earlier
   version let a user set their own `role`; that is closed.)
-- `courses` are world-readable only when `status = 'published'`; drafts are visible to
-  their author alone. A faculty member can create courses only if their profile is
-  `role = 'faculty'` **and** their email is on `@wellthyfy.in`. Admins can manage all.
+- `courses` are world-readable only when `status = 'published'`; everything else is visible
+  to its author (and admins) alone. A faculty member can create courses only if their
+  profile is `role = 'faculty'` **and** their email is on `@wellthyfy.in`.
+- **Faculty can never publish.** The `courses_review_guard` trigger lets faculty move a course
+  only between `draft`, `pending_review` and `archived`; setting `published` or `rejected`
+  is refused, `review_note`/`reviewed_at` are admin-only, and any content edit to a live
+  course sends it back to `pending_review` (off the site) until re-approved. Admins are
+  unrestricted.
 - `orders`: a student can only insert a **pending** order whose amount, title and faculty
   match the published course (an earlier version let a client insert a pre-verified
   order). Only an **admin** can verify or reject — payments go to Wellthyfy's UPI account,
@@ -267,28 +275,37 @@ used anywhere in the app — if you add it later, keep it server-only.
 2. A student enrols from `/courses/<slug>`: scan the UPI QR, pay, submit the UTR. The order
    shows as *Awaiting verification* until an admin verifies it.
 
-**Becoming faculty**
+**Becoming faculty** — two separate approvals: first the person, then each course.
 
-1. Visitor clicks **Become a Faculty** (nav, footer) → `/become-a-faculty` (landing: how to
-   earn in 3 steps) → `/become-a-faculty/apply`.
-2. The application collects personal details, a **government ID** (front + optional back,
-   uploaded straight to the private bucket), and the course: category → subcategory
-   (or **Other**), title, description, a **modules PDF**, mode, level, duration, language and fee.
+1. Visitor clicks **Become a Faculty** (nav, footer) → `/become-a-faculty` (landing: faculty
+   advantages — @wellthyfy.in mail ID, course promotion, own dashboard, 24×7 support; a
+   "How it works" video plus five steps; monthly payouts; FAQs) → **Apply** →
+   `/become-a-faculty/apply`.
+
+   The video is set in `facultyVideo` in `lib/site.ts`: put a YouTube video id in `youtubeId`,
+   **or** drop a file in `public/videos/` and set `src` (optionally `poster`). While both are
+   empty, a branded "coming soon" placeholder is shown.
+2. The application collects name, email, phone, WhatsApp, address, **qualification**
+   (required), teaching experience (optional), and **both a PAN card and an Aadhaar card
+   (front and back) — all three uploads are mandatory**. Files go straight to the private
+   `applications` bucket as `<id>/pan.*`, `<id>/id-front.*` and `<id>/id-back.*` (Aadhaar is
+   stored in the `id_*` columns with `id_type = 'aadhaar'`; PAN in `pan_path`). There is **no
+   registration fee**, and the landing and apply pages say so prominently.
 3. `POST /api/faculty-apply` validates, throttles (3/hour/IP), stores a *pending* row, then
-   emails the admins (`CONTACT_TO_EMAIL`) and acknowledges the applicant. The admin panel's
-   **Applications** tab also shows a live pending count.
-4. An admin opens the application, views the ID, and **approves** or **rejects**.
-   Approving (one DB transaction) publishes the course **immediately**, assigns the
-   `@wellthyfy.in` mail id and issues the invite token. The applicant is emailed the mail
-   id, a private link and the live course URL.
+   emails the admins (`CONTACT_TO_EMAIL`) and acknowledges the applicant.
+4. An admin opens **Applications**, checks the ID and qualification, and **approves** (assigns
+   an `@wellthyfy.in` mail id, issues the invite token, emails the applicant the mail id and a
+   private join link) or **rejects** (optional reason emailed). No course is created here.
 5. The faculty member opens `/faculty/join?token=…`, sets a password and confirms the email
-   Supabase sends **to their new @wellthyfy.in mailbox**. The live course attaches to the
-   account and the profile is pre-completed from the application. They sign in later at
-   `/faculty/login`.
-6. Faculty can then create more courses and edit their own at
-   `/dashboard/faculty/courses/new` and `/<id>/edit` (same form, prefilled; the slug never
-   changes and a live course keeps its original publish date). They see enrolled students
-   (name, email, WhatsApp) read-only.
+   Supabase sends **to their new @wellthyfy.in mailbox**. Later sign-ins: `/faculty/login`.
+6. From `/dashboard/faculty` they **create a course** (category, title, description, banner,
+   modules PDF, mode, fee…) and either **Save as draft** or **Submit for review**. Admins are
+   emailed for every submission.
+7. An admin opens **Courses** (badge = waiting count) → the course → **Approve and publish**
+   (live immediately, faculty emailed) or **Request changes** with a note (shown on the
+   faculty dashboard and emailed). The faculty edits and resubmits.
+8. Editing a live course takes it off the site until the new version is approved. Faculty can
+   also withdraw a submission or unpublish. They see enrolled students read-only.
 
 `/faculty/login`, `/faculty/join` and the whole admin panel are **not linked from any public
 page** and are `noindex`. `/login` and `/signup` are student-only.
@@ -312,10 +329,7 @@ update public.profiles set is_admin = true where email = 'someone@example.com';
 Modules are uploaded as **one PDF** (max 10 MB) instead of typed text, to the **public**
 `course-modules` bucket — it is curriculum, meant for prospective students.
 
-- **Applicants** (not signed in) upload to exactly `apply/<application-id>/modules.pdf`;
-  anon may insert only that path, never overwrite, list or delete. `/api/faculty-apply`
-  requires the path to match the application id and HEAD-checks that the file exists.
-- **Approval** copies `modules_pdf_path` from the application onto the new course.
+- Anonymous uploads to this bucket are closed (`0006`); only faculty can add PDFs.
 - **Faculty** upload from the course create/edit form (`ModulesPdfUpload`) into their own
   `<user-id>/` folder; the server action accepts only their own folder or the course's
   existing PDF.

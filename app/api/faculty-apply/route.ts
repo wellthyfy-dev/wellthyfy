@@ -1,22 +1,13 @@
 import { NextResponse } from "next/server";
-import { ID_TYPES, ID_UPLOAD } from "@/lib/faculty";
+import { ID_UPLOAD } from "@/lib/faculty";
 import { applicationReceivedEmail, newApplicationEmail } from "@/lib/faculty-emails";
 import { adminRecipients, sendMail } from "@/lib/mailer";
-import {
-  OTHER_SUBCATEGORY,
-  modulesPdfUrl,
-  type CourseCategory,
-  type CourseMode,
-} from "@/lib/platform";
 import { siteOrigin } from "@/lib/site-origin";
 import { createPublicClient } from "@/lib/supabase/public";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const CATEGORIES: CourseCategory[] = ["wellness", "wealth", "happiness"];
-const MODES: CourseMode[] = ["online_live", "recorded", "offline", "hybrid"];
-const ID_VALUES = ID_TYPES.map((t) => t.value) as string[];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const EXTENSIONS = Object.values(ID_UPLOAD.types).join("|");
 
@@ -59,19 +50,13 @@ export async function POST(request: Request) {
   const id = str(body.id, 40);
   if (!UUID.test(id)) return bad("Invalid request.");
 
-  const chosenSub = str(body.subcategory, 80);
-  const subcategory = chosenSub === OTHER_SUBCATEGORY ? str(body.subcategory_other, 80) : chosenSub;
-  const category = str(body.category, 20) as CourseCategory;
-  const mode = str(body.mode, 20) as CourseMode;
-  const idType = str(body.id_type, 30);
-  const fee = Number.parseInt(str(body.fee_inr, 12) || "", 10);
-
+  const panPath = str(body.pan_path, 200);
   const frontPath = str(body.id_front_path, 200);
   const backPath = str(body.id_back_path, 200);
   // Uploads are made by the browser straight to storage; confirm the paths are
   // the ones that folder is allowed to contain and belong to THIS application.
-  const pathOk = (p: string, side: "front" | "back") =>
-    new RegExp(`^${id}/id-${side}\\.(${EXTENSIONS})$`).test(p);
+  const pathOk = (p: string, name: "id-front" | "id-back" | "pan") =>
+    new RegExp(`^${id}/${name}\\.(${EXTENSIONS})$`).test(p);
 
   const row = {
     id,
@@ -80,21 +65,13 @@ export async function POST(request: Request) {
     phone: str(body.phone, 30),
     whatsapp: str(body.whatsapp, 30) || null,
     address: str(body.address, 500),
-    experience: str(body.experience, 3000),
-    id_type: idType,
+    qualification: str(body.qualification, 1000),
+    experience: str(body.experience, 3000) || null,
+    // PAN and Aadhaar are both required; Aadhaar sits in the id_* columns.
+    id_type: "aadhaar",
     id_front_path: frontPath,
-    id_back_path: backPath || null,
-    course_title: str(body.course_title, 140),
-    course_summary: str(body.course_summary, 200) || null,
-    course_description: str(body.course_description, 6000),
-    modules_pdf_path: str(body.modules_pdf_path, 200),
-    category,
-    subcategory,
-    mode,
-    level: str(body.level, 40) || null,
-    duration: str(body.duration, 60) || null,
-    language: str(body.language, 40) || null,
-    fee_inr: fee,
+    id_back_path: backPath,
+    pan_path: panPath,
   };
 
   if (row.full_name.length < 2) return bad("Please enter your full name.");
@@ -103,25 +80,11 @@ export async function POST(request: Request) {
   }
   if (row.phone.length < 7) return bad("Please enter a phone number we can reach you on.");
   if (row.address.length < 5) return bad("Please enter your address.");
-  if (row.experience.length < 10) return bad("Tell us a little about your background.");
-  if (!ID_VALUES.includes(idType)) return bad("Choose the type of government ID you are uploading.");
-  if (!pathOk(frontPath, "front")) return bad("Please upload the front of your ID.");
-  if (backPath && !pathOk(backPath, "back")) return bad("The back-of-ID upload is invalid.");
-  if (row.course_title.length < 3) return bad("Give your course a title.");
-  if (row.course_description.length < 20) return bad("Describe your course in a little more detail.");
-  if (row.modules_pdf_path !== `apply/${id}/modules.pdf`) {
-    return bad("Please upload your course modules as a PDF.");
-  }
-  if (!CATEGORIES.includes(category)) return bad("Choose a category.");
-  if (!subcategory) return bad("Choose a subcategory, or type one if you picked Other.");
-  if (!MODES.includes(mode)) return bad("Choose how the course is delivered.");
-  if (!Number.isFinite(fee) || fee < 0 || fee > 1_000_000) return bad("Enter a valid fee in rupees.");
+  if (row.qualification.length < 2) return bad("Tell us your qualification.");
+  if (!pathOk(panPath, "pan")) return bad("Please upload your PAN card.");
+  if (!pathOk(frontPath, "id-front")) return bad("Please upload the front of your Aadhaar card.");
+  if (!pathOk(backPath, "id-back")) return bad("Please upload the back of your Aadhaar card.");
   if (body.consent !== true) return bad("Please confirm the declaration to continue.");
-
-  // The bucket is public, so a HEAD request proves the upload really landed.
-  const pdfUrl = modulesPdfUrl(row.modules_pdf_path);
-  const pdfHead = pdfUrl ? await fetch(pdfUrl, { method: "HEAD", cache: "no-store" }).catch(() => null) : null;
-  if (!pdfHead?.ok) return bad("We could not find your modules PDF. Please upload it again.");
 
   // Anonymous insert, constrained by RLS to a clean "pending" row.
   const { error } = await createPublicClient().from("faculty_applications").insert(row);
