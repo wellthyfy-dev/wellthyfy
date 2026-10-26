@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, Clock, GraduationCap, Info, Sparkles } from "lucide-react";
 import CourseCover from "@/components/sections/CourseCover";
@@ -6,20 +7,15 @@ import LiveCourses from "@/components/sections/LiveCourses";
 import { Icon } from "@/components/ui/Icon";
 import { accentStyles, cn } from "@/lib/accents";
 import { CATALOGUE_COUNT, coursePillars, coursesForPillar } from "@/lib/courses";
-import { courses as skillCourses, siteConfig } from "@/lib/site";
+import { courses as skillCourses } from "@/lib/site";
 
 const description = `All ${CATALOGUE_COUNT} Wellthyfy courses across wellness, wealth and happiness — plus our professional beautician, yoga instructor and digital marketing training.`;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Courses",
   description,
-  alternates: { canonical: "/courses" },
-  openGraph: {
-    title: "Courses | Wellthyfy Lifestyle Ventures",
-    description,
-    url: `${siteConfig.url}/courses`,
-  },
-};
+  path: "/courses",
+});
 
 export default function CoursesPage() {
   return (

@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import OrganizationJsonLd from "@/components/seo/OrganizationJsonLd";
 import About from "@/components/sections/About";
 import Contact from "@/components/sections/Contact";
 import Courses from "@/components/sections/Courses";
@@ -8,10 +10,19 @@ import Services from "@/components/sections/Services";
 import Testimonials from "@/components/sections/Testimonials";
 import WhoCanJoin from "@/components/sections/WhoCanJoin";
 import WhyWellthyfy from "@/components/sections/WhyWellthyfy";
+import { COMPANY_DESCRIPTION, pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Wellthyfy | Official Website",
+  absoluteTitle: true,
+  description: COMPANY_DESCRIPTION,
+  path: "/",
+});
 
 export default function HomePage() {
   return (
     <>
+      <OrganizationJsonLd />
       <Hero />
       <About />
       <Services />

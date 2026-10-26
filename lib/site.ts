@@ -17,6 +17,19 @@ export const siteConfig = {
 } as const;
 
 /**
+ * Official social profiles — the footer icons and the Organization schema's
+ * `sameAs` both read from here. Clean URLs only (tracking parameters removed).
+ */
+export const socialProfiles = {
+  facebook: "https://www.facebook.com/profile.php?id=61594346823506",
+  instagram: "https://www.instagram.com/wellthyfylifestyleventures/",
+  youtube: "https://www.youtube.com/@WellthyfyLifestyleVentures",
+} as const;
+
+/** WhatsApp chat link (a contact channel, not a profile — not used in `sameAs`). */
+export const whatsappUrl = "https://wa.me/919751945999";
+
+/**
  * "How it works" video on /become-a-faculty. Set ONE of these:
  * - youtubeId: the id from a YouTube link (youtube.com/watch?v=<id> or youtu.be/<id>)
  * - src: a video file in /public, e.g. "/videos/become-a-faculty.mp4"

@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { ArrowLeft, BadgeCheck } from "lucide-react";
 import FacultyApplyForm from "@/components/platform/FacultyApplyForm";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Apply to become a Faculty",
-  description: "Apply to teach on Wellthyfy — free, no registration fee. Your details, your qualification, and your PAN and Aadhaar cards.",
-  alternates: { canonical: "/become-a-faculty/apply" },
-};
+  description:
+    "Apply to teach on Wellthyfy — free, no registration fee. Share your details, your qualification, and your PAN and Aadhaar cards.",
+  path: "/become-a-faculty/apply",
+});
 
 export default function ApplyPage() {
   return (

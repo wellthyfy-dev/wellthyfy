@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -17,21 +18,15 @@ import {
 import FacultyVideo from "@/components/sections/FacultyVideo";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/ui/Reveal";
 import { Eyebrow, SectionHeading } from "@/components/ui/SectionHeading";
-import { siteConfig } from "@/lib/site";
 
 const description =
   "Teach any skill in your own module and earn with Wellthyfy. Apply, get approved, publish your course and receive monthly payouts. No registration fee.";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Become a Faculty",
   description,
-  alternates: { canonical: "/become-a-faculty" },
-  openGraph: {
-    title: "Become a Faculty | Wellthyfy Lifestyle Ventures",
-    description,
-    url: `${siteConfig.url}/become-a-faculty`,
-  },
-};
+  path: "/become-a-faculty",
+});
 
 const steps = [
   {

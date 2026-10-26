@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { pageMetadata } from "@/lib/seo";
 import QRCode from "qrcode";
 import {
   ArrowLeft,
@@ -30,7 +31,6 @@ import {
 } from "@/lib/platform";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionProfile } from "@/lib/supabase/auth";
-import { siteConfig } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -47,18 +47,19 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const course = await loadCourse(slug);
-  if (!course) return { title: "Course not found" };
+  if (!course) return { title: "Course not found", robots: { index: false, follow: false } };
 
-  return {
+  const description = (course.summary ?? course.description).replace(/\s+/g, " ").slice(0, 160);
+  return pageMetadata({
     title: course.title,
-    description: course.summary ?? course.description.slice(0, 160),
-    alternates: { canonical: `/courses/${course.slug}` },
-    openGraph: {
-      title: `${course.title} | Wellthyfy`,
-      description: course.summary ?? course.description.slice(0, 160),
-      url: `${siteConfig.url}/courses/${course.slug}`,
-    },
-  };
+    description,
+    path: `/courses/${course.slug}`,
+    image: course.cover_url
+      ? { url: course.cover_url, width: 1200, height: 600, alt: course.title }
+      : undefined,
+    // Only the owner or an admin can open an unpublished course; never index it.
+    noindex: course.status !== "published",
+  });
 }
 
 export default async function CourseDetailPage({

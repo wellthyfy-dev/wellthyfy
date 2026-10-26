@@ -115,9 +115,9 @@ export default function Navbar() {
           aria-label="Primary"
           className="container-page flex h-[4.6rem] items-center justify-between gap-4 sm:h-24 md:h-[6.5rem]"
         >
-          <a href="#home" className="shrink-0 rounded-lg" aria-label={`${siteConfig.name} — home`}>
+          <Link href="/" className="shrink-0 rounded-lg" aria-label={`${siteConfig.name} — home`}>
             <Logo variant="header" priority />
-          </a>
+          </Link>
 
           {/* Centre links */}
           <ul className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 xl:flex">

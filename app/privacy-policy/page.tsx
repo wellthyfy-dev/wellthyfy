@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, Globe, Mail, MapPin, Phone, ShieldCheck } from "lucide-react";
 import {
@@ -7,21 +8,15 @@ import {
   policySections,
   type PolicyBlock,
 } from "@/lib/privacy-policy";
-import { siteConfig } from "@/lib/site";
 
 const description =
   "How Wellthyfy Lifestyle Ventures collects, uses, stores and protects your personal information, and the rights available to you under India's data-protection framework.";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Privacy Policy",
   description,
-  alternates: { canonical: "/privacy-policy" },
-  openGraph: {
-    title: "Privacy Policy | Wellthyfy Lifestyle Ventures",
-    description,
-    url: `${siteConfig.url}/privacy-policy`,
-  },
-};
+  path: "/privacy-policy",
+});
 
 function Blocks({ blocks }: { blocks: PolicyBlock[] }) {
   return (

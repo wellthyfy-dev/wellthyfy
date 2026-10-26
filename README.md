@@ -104,26 +104,14 @@ These are deliberately stubbed:
 
 ## The header logo
 
-`public/logo-full.png` is a **stacked** lockup — emblem over wordmark over tagline. At a
-header height of 80px the whole stack is only ~82px wide, which renders "LIFESTYLE
-VENTURES" and the tagline at four or five pixels tall.
+`components/ui/Logo.tsx` renders the full horizontal logo as one image:
+`public/logo-full.webp` (1200x331, transparent, trimmed from the supplied
+`public/wellthyfy -logo.webp`). Header height steps 48 -> 64 -> 68px (about 174 -> 247px
+wide) so it clears the menu button on phones and the centred nav links on desktop; the footer
+uses 80px (about 290px wide).
 
-So `components/ui/Logo.tsx` composes a **horizontal** lockup from two crops of the
-full-resolution source (`assets/brand/logo-original.png`, 4366x4278 after trim):
-
-| Asset | Crop | Shipped |
-| --- | --- | --- |
-| `public/logo-mark.webp` | emblem, y 0-2455 | 512x512 |
-| `public/logo-wordmark.webp` | wordmark + LIFESTYLE VENTURES, y 2455-3570 | 900x230 |
-
-Regenerate the wordmark after replacing the source:
-
-```bash
-node -e "require('sharp')('assets/brand/logo-original.png').trim({threshold:1}).extract({left:0,top:2455,width:4366,height:1115}).trim({threshold:1}).resize({width:900}).webp({quality:92,alphaQuality:100}).toFile('public/logo-wordmark.webp')"
-```
-
-The lockup is ~254px wide at full size, so the header steps the emblem down 48 -> 64 -> 80px
-across breakpoints; at 390px the full lockup plus the menu button still fits.
+`public/logo-full.png` (the stacked 900x882 lockup) is kept on purpose: it is the
+Organization logo in structured data, where a square-ish mark works best.
 
 ## The About artwork
 
@@ -164,6 +152,58 @@ makes Resend reject the message, which drops the visitor's confirmation.
 Also built in: required-field and email validation, a hidden honeypot field, and a
 per-IP in-process throttle (5 per 10 minutes). The throttle resets on redeploy and is
 per-instance — front it with a real limiter if the form attracts bots.
+
+## SEO and Google Knowledge Panel groundwork
+
+**Canonical host: `https://www.wellthyfy.in`, no trailing slash.** Verified on the live
+site: `http://wellthyfy.in`, `https://wellthyfy.in` and trailing-slash URLs all answer
+with a permanent **308** to the `www` form. Everything below uses that host
+(`siteConfig.url`, re-exported as `SITE_URL` from `lib/seo.ts`).
+
+What is in place:
+
+| Piece | Where | Notes |
+| --- | --- | --- |
+| Organization + WebSite JSON-LD | `components/seo/OrganizationJsonLd.tsx`, rendered by `app/page.tsx` only | One `@graph` script, so there is exactly one Organization (`@id` `https://www.wellthyfy.in/#organization`). Name `Wellthyfy`, legalName `Wellthyfy Lifestyle Ventures Private Limited`, logo `/logo-full.png` (900x882), description, slogan, email, phone, registered address, customer-service contactPoint. The WebSite node (`name: Wellthyfy`, `publisher` -> the Organization) is what Google uses for the site name. Serialised with `serializeJsonLd`, which escapes `<`, `>`, `&` and line separators. |
+| Homepage metadata | `app/page.tsx` | Title **Wellthyfy &#124; Official Website**, company description, canonical, Open Graph + X card. |
+| Every public page | `pageMetadata()` in `lib/seo.ts` | Unique title (`Page &#124; Wellthyfy`), description, self-canonical, and a *complete* Open Graph + X card. (Next replaces rather than merges a parent's `openGraph`/`twitter`, so pages used to lose the site name and share image, and their X card showed the homepage title.) |
+| Share image | `public/og-image.png` | 1200x630, built from the official logo. |
+| Sitemap | `app/sitemap.ts` | Homepage, `/courses`, `/become-a-faculty`, `/become-a-faculty/apply`, `/privacy-policy` and every **published** course (`lastModified` from the course's real `updated_at`). Rebuilt hourly. No fake "now" dates on static pages. |
+| robots.txt | `app/robots.ts` | Allows everything public; disallows `/admin`, `/dashboard`, `/onboarding`, `/api/`, `/auth/`, `/faculty/` (crawl budget only — access control is sign-in + RLS). Sign-in pages stay crawlable so their `noindex` is seen. Assets are never blocked. |
+| noindex | sign-in, sign-up, password, onboarding, dashboards, admin, hidden faculty pages, unpublished course previews | Already present; course previews added. |
+
+Social profiles and owner input:
+
+- **Social profiles** live in `socialProfiles` in `lib/site.ts` (Facebook
+  `profile.php?id=61594346823506`, Instagram `wellthyfylifestyleventures`, YouTube
+  `@WellthyfyLifestyleVentures`). The footer icons and the Organization `sameAs` both read
+  from there, so they cannot drift apart. WhatsApp (`wa.me/919751945999`) is a footer contact
+  link only — a chat link is not a profile, so it is not in `sameAs`. Make sure each profile
+  links back to https://www.wellthyfy.in in its bio/about section; two-way links are one of
+  the strongest Knowledge Panel signals.
+- Optional, if you have them: company registration details (CIN), founding date and founder
+  names can be added to the Organization — only with verified values.
+
+### Manual steps after deploying (cannot be done from the codebase)
+
+1. **Google Search Console** (https://search.google.com/search-console/) — add a **Domain
+   property** for `wellthyfy.in` and verify it with the **DNS TXT record** Google gives you
+   (at your domain registrar / DNS host). A Domain property covers www, non-www, http and
+   https together.
+2. **Submit the sitemap:** Sitemaps -> `https://www.wellthyfy.in/sitemap.xml`.
+3. **URL Inspection** -> `https://www.wellthyfy.in` -> check "User-declared canonical" and
+   "Google-selected canonical" both show the www URL -> **Request indexing**. Repeat for
+   `/courses` and `/become-a-faculty`.
+4. **Validate the structured data** on the live URL:
+   Rich Results Test (https://search.google.com/test/rich-results) — should detect
+   *Organization*; Schema.org validator (https://validator.schema.org/) — no errors.
+5. **Monitor** Performance -> Search results, filtered by query containing "wellthyfy", and
+   Pages (indexing) for errors. Expect days to weeks before changes show.
+
+A Knowledge Panel is decided by Google and cannot be guaranteed. What helps beyond this
+code: consistent name/logo/address across the web, a verified **Google Business Profile**
+(if you serve customers at the Puducherry address), and official social profiles that link
+to wellthyfy.in. Once a panel appears, claim it via "Claim this knowledge panel".
 
 ## Analytics
 

@@ -7,7 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import ScrollToTop from "@/components/ui/ScrollToTop";
-import { siteConfig } from "@/lib/site";
+import { BRAND, COMPANY_DESCRIPTION, DEFAULT_OG_IMAGE, LEGAL_NAME, SITE_URL } from "@/lib/seo";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -23,55 +23,33 @@ const fraunces = Fraunces({
   axes: ["SOFT", "WONK"],
 });
 
-const description =
-  "Wellthyfy Lifestyle Ventures empowers individuals through wellness programs, financial education, skill development, community growth, and professional courses.";
-
+// Defaults for every page. Public pages override title/description/canonical
+// (and their full Open Graph + X card) through `pageMetadata` in lib/seo.ts.
 export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Wellthyfy Lifestyle Ventures | Empowering Health, Wealth & Happiness",
-    template: "%s | Wellthyfy Lifestyle Ventures",
+    default: "Wellthyfy | Official Website",
+    template: `%s | ${BRAND}`,
   },
-  description,
-  applicationName: siteConfig.name,
-  keywords: [
-    "Wellthyfy",
-    "lifestyle company Puducherry",
-    "holistic wellness programs",
-    "yoga instructor course",
-    "basic beautician course",
-    "digital marketing course",
-    "financial literacy training",
-    "skill development Puducherry",
-    "community empowerment",
-    "health wealth happiness",
-  ],
-  authors: [{ name: siteConfig.legalName }],
-  creator: siteConfig.legalName,
-  publisher: siteConfig.legalName,
-  alternates: { canonical: "/" },
-  category: "Health & Wellness",
+  description: COMPANY_DESCRIPTION,
+  applicationName: BRAND,
+  authors: [{ name: LEGAL_NAME }],
+  creator: LEGAL_NAME,
+  publisher: LEGAL_NAME,
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: siteConfig.url,
-    siteName: siteConfig.name,
-    title: "Wellthyfy Lifestyle Ventures | Empowering Health, Wealth & Happiness",
-    description,
-    images: [
-      {
-        url: "/logo-full.png",
-        width: 900,
-        height: 882,
-        alt: "Wellthyfy Lifestyle Ventures — Empowering Health, Wealth & Happiness",
-      },
-    ],
+    siteName: BRAND,
+    url: SITE_URL,
+    title: "Wellthyfy | Official Website",
+    description: COMPANY_DESCRIPTION,
+    images: [DEFAULT_OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Wellthyfy Lifestyle Ventures | Empowering Health, Wealth & Happiness",
-    description,
-    images: ["/logo-full.png"],
+    title: "Wellthyfy | Official Website",
+    description: COMPANY_DESCRIPTION,
+    images: [DEFAULT_OG_IMAGE.url],
   },
   icons: {
     icon: "/icon.png",
@@ -91,42 +69,10 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: siteConfig.legalName,
-  alternateName: "Wellthyfy",
-  url: siteConfig.url,
-  logo: `${siteConfig.url}/logo-full.png`,
-  description,
-  slogan: siteConfig.tagline,
-  telephone: siteConfig.phone,
-  email: siteConfig.email,
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: "No.34, First Floor, Kasthuribai Nagar",
-    addressLocality: "Puducherry",
-    postalCode: "605009",
-    addressCountry: "IN",
-  },
-  areaServed: "IN",
-  knowsAbout: [
-    "Holistic wellness",
-    "Yoga",
-    "Financial literacy",
-    "Skill development",
-    "Community empowerment",
-  ],
-};
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${jakarta.variable} ${fraunces.variable}`}>
       <body className="antialiased">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
         <LoadingScreen />
         <AnimatedBackground />
         <a
