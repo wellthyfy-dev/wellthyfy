@@ -43,14 +43,23 @@ export const facultyVideo = {
 
 export type Accent = "green" | "navy" | "gold";
 
+/** Main menu. Contact stays a section on the homepage; the rest are pages. */
 export const navLinks = [
-  { label: "Home", href: "/#home" },
-  { label: "About", href: "/#about" },
-  { label: "Services", href: "/#services" },
-  { label: "Courses", href: "/#courses" },
-  { label: "Why Wellthyfy", href: "/#why-wellthyfy" },
+  { label: "Home", href: "/" },
+  { label: "About", href: "/about" },
+  { label: "Services", href: "/services" },
+  { label: "Courses", href: "/courses" },
   { label: "Contact", href: "/#contact" },
 ];
+
+/** "Health & Wellness" -> "health-wellness": the service's anchor on /services and its image name. */
+export function serviceSlug(title: string) {
+  return title
+    .toLowerCase()
+    .replace(/&/g, " ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
 export const pillars: {
   title: string;

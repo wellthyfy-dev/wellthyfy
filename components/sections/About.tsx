@@ -1,5 +1,6 @@
 import { ArrowRight, Check } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import { Eyebrow } from "@/components/ui/SectionHeading";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/ui/Reveal";
@@ -27,9 +28,14 @@ function BalanceArtwork() {
   );
 }
 
-export default function About() {
+/**
+ * "teaser" is the short homepage version that points to /about;
+ * "full" (the About page) adds the three pillars.
+ */
+export default function About({ variant = "full" }: { variant?: "full" | "teaser" }) {
+  const teaser = variant === "teaser";
   return (
-    <section id="about" className="relative scroll-mt-28 py-20 sm:py-28 lg:py-32">
+    <section id="about" className="relative scroll-mt-28 py-20 ">
       <div className="container-page">
         <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-16">
           <Reveal direction="right">
@@ -62,81 +68,88 @@ export default function About() {
             </Reveal>
 
             <Reveal direction="left" delay={0.28}>
-              <a
-                href="#services"
-                className="group mt-8 inline-flex items-center gap-2 rounded-full border border-navy-200 bg-white/80 px-6 py-3.5 text-sm font-semibold text-navy-800 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-navy-300 hover:shadow-soft"
+              <Link
+                href={teaser ? "/about" : "/services"}
+                className={cn(
+                  "group mt-8 inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5",
+                  teaser
+                    ? "bg-gradient-to-r from-well-600 to-navy-700 text-white shadow-glow-green hover:shadow-lift"
+                    : "border border-navy-200 bg-white/80 text-navy-800 backdrop-blur-sm hover:border-navy-300 hover:shadow-soft",
+                )}
               >
-                See what we do
+                {teaser ? "Read our story" : "See what we do"}
                 <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </a>
+              </Link>
             </Reveal>
           </div>
         </div>
 
         {/* Three pillars */}
-        <StaggerGroup className="mt-20 grid gap-6 md:grid-cols-3 lg:mt-24 lg:gap-7">
-          {pillars.map((pillar) => {
-            const a = accentStyles[pillar.accent];
-            return (
-              <StaggerItem key={pillar.title}>
-                <article
-                  className={cn(
-                    "group relative h-full overflow-hidden rounded-3xl border border-navy-900/7 bg-white/85 p-7 shadow-soft backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-lift ring-brand-hover",
-                  )}
-                >
-                  {/* Corner tint that blooms on hover */}
-                  <span
+        {!teaser && (
+          <StaggerGroup className="mt-20 grid gap-6 md:grid-cols-3 lg:mt-24 lg:gap-7">
+            {pillars.map((pillar) => {
+              const a = accentStyles[pillar.accent];
+              return (
+                <StaggerItem key={pillar.title}>
+                  <article
                     className={cn(
-                      "pointer-events-none absolute -right-16 -top-16 size-40 rounded-full opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100",
-                      a.tintBg,
-                    )}
-                  />
-
-                  <span
-                    className={cn(
-                      "relative grid size-14 place-items-center rounded-2xl text-white transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6",
-                      a.iconTile,
-                      a.glow,
+                      "group relative h-full overflow-hidden rounded-3xl border border-navy-900/7 bg-white/85 p-7 shadow-soft backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-lift ring-brand-hover",
                     )}
                   >
-                    <Icon name={pillar.icon} className="size-7" />
-                  </span>
+                    {/* Corner tint that blooms on hover */}
+                    <span
+                      className={cn(
+                        "pointer-events-none absolute -right-16 -top-16 size-40 rounded-full opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100",
+                        a.tintBg,
+                      )}
+                    />
 
-                  <h3 className="relative mt-6 text-xl font-semibold sm:text-[1.35rem]">
-                    {pillar.title}
-                  </h3>
-                  <p className="relative mt-2.5 text-sm leading-relaxed text-ink-soft">
-                    {pillar.blurb}
-                  </p>
+                    <span
+                      className={cn(
+                        "relative grid size-14 place-items-center rounded-2xl text-white transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6",
+                        a.iconTile,
+                        a.glow,
+                      )}
+                    >
+                      <Icon name={pillar.icon} className="size-7" />
+                    </span>
 
-                  <ul className="relative mt-6 space-y-3 border-t border-navy-900/7 pt-5">
-                    {pillar.points.map((point) => (
-                      <li key={point} className="flex items-center gap-3 text-[0.95rem] text-ink">
-                        <span
-                          className={cn(
-                            "grid size-5 shrink-0 place-items-center rounded-full",
-                            a.softBg,
-                          )}
-                        >
-                          <Check className={cn("size-3", a.text)} strokeWidth={3.2} />
-                        </span>
-                        {point}
-                      </li>
-                    ))}
-                  </ul>
+                    <h3 className="relative mt-6 text-xl font-semibold sm:text-[1.35rem]">
+                      {pillar.title}
+                    </h3>
+                    <p className="relative mt-2.5 text-sm leading-relaxed text-ink-soft">
+                      {pillar.blurb}
+                    </p>
 
-                  {/* Base accent bar */}
-                  <span
-                    className={cn(
-                      "absolute inset-x-0 bottom-0 h-1 origin-left scale-x-0 transition-transform duration-500 group-hover:scale-x-100",
-                      a.bar,
-                    )}
-                  />
-                </article>
-              </StaggerItem>
-            );
-          })}
-        </StaggerGroup>
+                    <ul className="relative mt-6 space-y-3 border-t border-navy-900/7 pt-5">
+                      {pillar.points.map((point) => (
+                        <li key={point} className="flex items-center gap-3 text-[0.95rem] text-ink">
+                          <span
+                            className={cn(
+                              "grid size-5 shrink-0 place-items-center rounded-full",
+                              a.softBg,
+                            )}
+                          >
+                            <Check className={cn("size-3", a.text)} strokeWidth={3.2} />
+                          </span>
+                          {point}
+                        </li>
+                      ))}
+                    </ul>
+
+                    {/* Base accent bar */}
+                    <span
+                      className={cn(
+                        "absolute inset-x-0 bottom-0 h-1 origin-left scale-x-0 transition-transform duration-500 group-hover:scale-x-100",
+                        a.bar,
+                      )}
+                    />
+                  </article>
+                </StaggerItem>
+              );
+            })}
+          </StaggerGroup>
+        )}
       </div>
     </section>
   );

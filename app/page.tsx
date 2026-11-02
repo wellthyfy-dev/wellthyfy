@@ -9,7 +9,6 @@ import LiveCourses from "@/components/sections/LiveCourses";
 import Services from "@/components/sections/Services";
 import Testimonials from "@/components/sections/Testimonials";
 import WhoCanJoin from "@/components/sections/WhoCanJoin";
-import WhyWellthyfy from "@/components/sections/WhyWellthyfy";
 import { COMPANY_DESCRIPTION, pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -24,11 +23,11 @@ export default function HomePage() {
     <>
       <OrganizationJsonLd />
       <Hero />
-      <About />
+      {/* Short previews; each links to its full page */}
+      <About variant="teaser" />
       <Services />
       <Courses />
       <LiveCourses />
-      <WhyWellthyfy />
       <WhoCanJoin />
       <Testimonials />
       <CTABanner />

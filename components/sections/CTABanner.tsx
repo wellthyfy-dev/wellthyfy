@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, MessageCircle } from "lucide-react";
+import Link from "next/link";
 import Image from "next/image";
 import type { CSSProperties } from "react";
 import { Reveal } from "@/components/ui/Reveal";
@@ -73,20 +74,20 @@ export default function CTABanner() {
             </p>
 
             <div className="mt-10 flex flex-col items-center justify-center gap-3.5 sm:flex-row">
-              <a
-                href="#contact"
+              <Link
+                href="/#contact"
                 className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-base font-semibold text-navy-900 transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold-50 hover:shadow-lift sm:w-auto"
               >
                 Become a Member
                 <ArrowRight className="size-4.5 transition-transform duration-300 group-hover:translate-x-1" />
-              </a>
-              <a
-                href="#contact"
+              </Link>
+              <Link
+                href="/#contact"
                 className="group inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/45 bg-white/10 px-8 py-4 text-base font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-white/70 hover:bg-white/20 sm:w-auto"
               >
                 Contact Us
                 <MessageCircle className="size-4.5 transition-transform duration-300 group-hover:scale-110" />
-              </a>
+              </Link>
             </div>
           </div>
         </Reveal>

@@ -19,6 +19,8 @@ const eslintConfig = [
       ".next-verify/**",
       "out/**",
       "build/**",
+      // Compiled output from editor extensions (e.g. Compile Hero writes dist/ next to sources)
+      "**/dist/**",
       "next-env.d.ts",
     ],
   },

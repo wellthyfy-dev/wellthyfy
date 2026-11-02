@@ -3,13 +3,13 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, Phone, X } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/ui/Logo";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/accents";
 import { navLinks, siteConfig } from "@/lib/site";
 
-const SECTION_IDS = navLinks.map((l) => l.href.split("#")[1]);
 
 /** Auth entry point. Becomes a dashboard link once signed in. */
 function AuthButton({
@@ -42,7 +42,8 @@ function AuthButton({
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState("");
+  const pathname = usePathname();
+  const [contactInView, setContactInView] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
 
   // Read auth in the browser rather than in the layout: touching cookies
@@ -69,29 +70,25 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Highlight the nav item for the section currently in view.
+  // On the homepage, "Contact" lights up while the contact section is on screen.
   useEffect(() => {
+    setContactInView(false);
+    if (pathname !== "/") return;
+    const el = document.getElementById("contact");
+    if (!el) return;
     const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (visible) setActive(visible.target.id);
-      },
-      { rootMargin: "-45% 0px -50% 0px", threshold: [0, 0.25, 0.5, 1] },
+      ([entry]) => setContactInView(entry.isIntersecting),
+      { rootMargin: "-45% 0px -45% 0px" },
     );
-    let observed = 0;
-    SECTION_IDS.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) {
-        observer.observe(el);
-        observed += 1;
-      }
-    });
-    // No sections on this route — nothing should read as the current page.
-    if (observed === 0) setActive("");
+    observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [pathname]);
+
+  const isActive = (href: string) => {
+    if (href === "/#contact") return pathname === "/" && contactInView;
+    if (href === "/") return pathname === "/" && !contactInView;
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
 
   // Lock body scroll while the mobile sheet is open.
   useEffect(() => {
@@ -122,19 +119,18 @@ export default function Navbar() {
           {/* Centre links */}
           <ul className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 xl:flex">
             {navLinks.map((link) => {
-              const id = link.href.split("#")[1];
-              const isActive = active === id;
+              const current = isActive(link.href);
               return (
                 <li key={link.href}>
-                  <a
+                  <Link
                     href={link.href}
-                    aria-current={isActive ? "true" : undefined}
+                    aria-current={current ? "page" : undefined}
                     className={cn(
                       "relative block rounded-full px-4 py-2 text-[0.9rem] font-medium transition-colors duration-300",
-                      isActive ? "text-navy-800" : "text-ink-soft hover:text-navy-800",
+                      current ? "text-navy-800" : "text-ink-soft hover:text-navy-800",
                     )}
                   >
-                    {isActive && (
+                    {current && (
                       <motion.span
                         layoutId="nav-pill"
                         className="absolute inset-0 -z-10 rounded-full bg-well-50 ring-1 ring-well-200/70"
@@ -142,7 +138,7 @@ export default function Navbar() {
                       />
                     )}
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               );
             })}
@@ -200,14 +196,14 @@ export default function Navbar() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.05 + i * 0.05 }}
                   >
-                    <a
+                    <Link
                       href={link.href}
                       onClick={() => setOpen(false)}
                       className="flex items-center justify-between rounded-2xl px-4 py-3.5 text-base font-medium text-ink transition-colors hover:bg-well-50 hover:text-well-700"
                     >
                       {link.label}
                       <span className="size-1.5 rounded-full bg-gold-400" aria-hidden="true" />
-                    </a>
+                    </Link>
                   </motion.li>
                 ))}
               </ul>

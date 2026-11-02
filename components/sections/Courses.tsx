@@ -2,11 +2,40 @@
 
 import { ArrowRight, GraduationCap } from "lucide-react";
 import Link from "next/link";
+import {
+  HappinessIllustration,
+  WealthIllustration,
+  WellnessIllustration,
+} from "@/components/illustrations/Illustrations";
+import TiltCard from "@/components/ui/TiltCard";
 import { Icon } from "@/components/ui/Icon";
 import { StaggerGroup, StaggerItem } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { accentStyles, cn } from "@/lib/accents";
 import { CATALOGUE_COUNT, coursePillars, coursesForPillar } from "@/lib/courses";
+
+/** Lead illustration per pillar — one consistent style across all three. */
+const PILLAR_ART = {
+  wellness: WellnessIllustration,
+  wealth: WealthIllustration,
+  happiness: HappinessIllustration,
+} as const;
+
+function PillarVisual({ id, title }: { id: string; title: string }) {
+  const Art = PILLAR_ART[id as keyof typeof PILLAR_ART] ?? WellnessIllustration;
+  return (
+    <Art
+      title={title}
+      className="absolute inset-0 size-full transition-transform duration-700 group-hover:scale-110"
+    />
+  );
+}
+
+const ART_BG: Record<string, string> = {
+  wellness: "bg-gradient-to-br from-well-50 to-white",
+  wealth: "bg-gradient-to-br from-navy-50 to-white",
+  happiness: "bg-gradient-to-br from-gold-50 to-white",
+};
 
 export default function Courses() {
   return (
@@ -29,63 +58,75 @@ export default function Courses() {
 
             return (
               <StaggerItem key={pillar.id} className="h-full">
-                <Link
-                  href={`/courses#${pillar.id}`}
-                  className="group flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-navy-900/8 bg-white shadow-soft transition-all duration-500 hover:-translate-y-2.5 hover:shadow-lift"
-                >
-                  {/* Header band */}
-                  <div className={cn("relative overflow-hidden px-7 py-8", a.iconTile)}>
+                <TiltCard className="h-full rounded-[1.75rem]">
+                  <Link
+                    href={`/courses#${pillar.id}`}
+                    className="group flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-navy-900/8 bg-white shadow-soft transition-shadow duration-500 hover:shadow-lift"
+                  >
+                    {/* Visual header */}
                     <div
-                      className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_1px_1px,#fff_1px,transparent_0)] [background-size:16px_16px]"
-                      aria-hidden="true"
+                      className={cn("relative aspect-[16/10] overflow-hidden", ART_BG[pillar.id])}
+                    >
+                      <PillarVisual id={pillar.id} title={pillar.title} />
+                      <div
+                        className={cn(
+                          "absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t",
+                          "!h-[42%] from-white via-white/80 to-transparent",
+                        )}
+                      />
+                      <span
+                        className={cn(
+                          "absolute left-5 top-5 grid size-12 place-items-center rounded-2xl text-white shadow-lift transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110",
+                          a.iconTile,
+                        )}
+                      >
+                        <Icon name={pillar.icon} className="size-6" />
+                      </span>
+                      <div className="absolute inset-x-0 bottom-0 p-6">
+                        <h3 className={cn("font-display text-3xl font-semibold", "text-ink")}>
+                          {pillar.title}
+                        </h3>
+                        <p className={cn("mt-1 text-sm font-medium", a.text)}>{pillar.tagline}</p>
+                      </div>
+                    </div>
+
+                    {/* Body */}
+                    <div className="flex flex-1 flex-col p-7">
+                      <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-navy-700/60">
+                        <GraduationCap className={cn("size-4", a.softText)} strokeWidth={2.2} />
+                        {count} courses
+                      </p>
+
+                      <ul className="mt-4 flex flex-wrap gap-2">
+                        {pillar.topics.map((topic) => (
+                          <li
+                            key={topic}
+                            className={cn(
+                              "rounded-full border px-3 py-1.5 text-xs font-medium",
+                              a.softBg,
+                              a.border,
+                              a.text,
+                            )}
+                          >
+                            {topic}
+                          </li>
+                        ))}
+                      </ul>
+
+                      <span className="mt-auto inline-flex items-center gap-2 pt-8 text-sm font-semibold text-navy-800 transition-colors group-hover:text-well-700">
+                        {pillar.cta}
+                        <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+                      </span>
+                    </div>
+
+                    <span
+                      className={cn(
+                        "h-1 origin-left scale-x-0 transition-transform duration-500 group-hover:scale-x-100",
+                        a.bar,
+                      )}
                     />
-                    <span className="relative grid size-14 place-items-center rounded-2xl bg-white/20 text-white backdrop-blur-sm transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6">
-                      <Icon name={pillar.icon} className="size-7" />
-                    </span>
-                    <h3 className="relative mt-5 font-display text-3xl font-semibold text-white">
-                      {pillar.title}
-                    </h3>
-                    <p className="relative mt-2 text-sm font-medium text-white/85">
-                      {pillar.tagline}
-                    </p>
-                  </div>
-
-                  {/* Body */}
-                  <div className="flex flex-1 flex-col p-7">
-                    <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-navy-700/60">
-                      <GraduationCap className={cn("size-4", a.softText)} strokeWidth={2.2} />
-                      {count} courses
-                    </p>
-
-                    <ul className="mt-4 flex flex-wrap gap-2">
-                      {pillar.topics.map((topic) => (
-                        <li
-                          key={topic}
-                          className={cn(
-                            "rounded-full border px-3 py-1.5 text-xs font-medium",
-                            a.softBg,
-                            a.border,
-                            a.text,
-                          )}
-                        >
-                          {topic}
-                        </li>
-                      ))}
-                    </ul>
-
-                    <span className="mt-auto inline-flex items-center gap-2 pt-8 text-sm font-semibold text-navy-800 transition-colors group-hover:text-well-700">
-                      {pillar.cta}
-                      <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
-                    </span>
-                  </div>
-
-                  <span
-                    className={cn(
-                      "h-1 origin-left scale-x-0 transition-transform duration-500 group-hover:scale-x-100",
-                      a.bar,
-                    )}
-                  />
-                </Link>
+                  </Link>
+                </TiltCard>
               </StaggerItem>
             );
           })}

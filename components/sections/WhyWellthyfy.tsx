@@ -1,34 +1,98 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, Check, ShieldCheck } from "lucide-react";
-import { Reveal, StaggerGroup, StaggerItem } from "@/components/ui/Reveal";
+import { ArrowRight, Check, ShieldCheck, Sparkles } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
+import { useState } from "react";
+import { EASE, Reveal } from "@/components/ui/Reveal";
 import { Eyebrow } from "@/components/ui/SectionHeading";
+import { cn } from "@/lib/accents";
 import { whyWellthyfy } from "@/lib/site";
 
 const ACCENT_CYCLE = [
-  "from-well-400 to-well-600",
-  "from-navy-500 to-navy-700",
-  "from-gold-400 to-gold-600",
+  { tile: "from-well-400 to-well-600", text: "text-well-700", bar: "bg-well-500" },
+  { tile: "from-navy-500 to-navy-700", text: "text-navy-700", bar: "bg-navy-600" },
+  { tile: "from-gold-400 to-gold-600", text: "text-gold-700", bar: "bg-gold-500" },
 ];
 
 export default function WhyWellthyfy() {
+  const [hovered, setHovered] = useState<number | null>(null);
+
   return (
-    <section id="why-wellthyfy" className="relative scroll-mt-28 py-20 sm:py-24 lg:py-28">
+    <section id="why-wellthyfy" className="relative scroll-mt-28 overflow-hidden py-20 sm:py-24 lg:py-28">
       <div className="container-page">
-        <div className="grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
-          {/* Intro */}
-          <div className="lg:sticky lg:top-28 lg:self-start">
+        <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-16">
+          {/* Visual */}
+          <Reveal direction="right">
+            <div className="relative mx-auto w-full max-w-md lg:max-w-none">
+              {/* soft rings behind the arch */}
+              <div
+                aria-hidden="true"
+                className="absolute -left-8 top-10 size-40 rounded-full bg-gold-200/50 blur-2xl"
+              />
+              <div
+                aria-hidden="true"
+                className="absolute -right-6 bottom-6 size-48 rounded-full bg-well-200/60 blur-2xl"
+              />
+
+              <div className="group relative mx-auto aspect-[4/5] w-[86%] overflow-hidden rounded-t-[999px] rounded-b-[2.5rem] border-[6px] border-white shadow-lift">
+                <Image
+                  src="/courses/beautician.webp"
+                  alt="A relaxed woman during a facial treatment — hands-on, expert-led beauty training."
+                  fill
+                  sizes="(max-width: 1024px) 80vw, 460px"
+                  className="object-cover object-[80%_center] transition-transform duration-[1.2s] ease-out group-hover:scale-105"
+                />
+                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-navy-950/40 to-transparent" />
+              </div>
+
+              {/* Floating trust badge */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ delay: 0.25, duration: 0.7, ease: EASE }}
+                whileHover={{ y: -4 }}
+                className="absolute -bottom-4 left-0 flex max-w-[17rem] items-start gap-3 rounded-2xl border border-well-100 bg-white/95 p-4 shadow-lift backdrop-blur-md sm:left-2"
+              >
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-well-500 to-navy-700 text-white shadow-glow-green">
+                  <ShieldCheck className="size-5" strokeWidth={2} />
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold text-ink">
+                    A registered private limited company
+                  </span>
+                  <span className="mt-0.5 block text-xs leading-relaxed text-ink-soft">
+                    Transparent programs and a real address in Puducherry.
+                  </span>
+                </span>
+              </motion.div>
+
+              {/* Floating sparkle chip */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ delay: 0.4, duration: 0.6, ease: EASE }}
+                className="absolute right-0 top-12 flex items-center gap-2 rounded-full border border-gold-200 bg-white/95 px-4 py-2.5 text-sm font-semibold text-gold-800 shadow-lift sm:right-2"
+              >
+                <Sparkles className="size-4 text-gold-600 animate-float" />
+                Holistic, not a shortcut
+              </motion.div>
+            </div>
+          </Reveal>
+
+          {/* Copy + reasons */}
+          <div>
             <Reveal>
               <Eyebrow>Why Choose Wellthyfy</Eyebrow>
             </Reveal>
-
             <Reveal delay={0.08}>
               <h2 className="mt-6 text-3xl font-semibold leading-[1.14] sm:text-4xl lg:text-[2.7rem]">
                 Reasons families keep <span className="text-gradient-brand">choosing us</span>
               </h2>
             </Reveal>
-
             <Reveal delay={0.14}>
               <p className="mt-5 text-base leading-relaxed text-ink-soft sm:text-lg">
                 We are not selling a shortcut. We build habits, skills and relationships that keep
@@ -36,52 +100,68 @@ export default function WhyWellthyfy() {
               </p>
             </Reveal>
 
-            <Reveal delay={0.2}>
-              <div className="mt-8 flex items-start gap-4 rounded-2xl border border-well-100 bg-well-50/70 p-5">
-                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-well-500 to-navy-700 text-white shadow-glow-green">
-                  <ShieldCheck className="size-5.5" strokeWidth={2} />
-                </span>
-                <div>
-                  <p className="font-semibold text-ink">A registered private limited company</p>
-                  <p className="mt-1 text-sm leading-relaxed text-ink-soft">
-                    Transparent programs, named faculty and a real address in Puducherry.
-                  </p>
-                </div>
-              </div>
-            </Reveal>
+            <ul className="mt-8 divide-y divide-navy-900/7 border-y border-navy-900/7">
+              {whyWellthyfy.map((item, i) => {
+                const c = ACCENT_CYCLE[i % ACCENT_CYCLE.length];
+                const on = hovered === i;
+                return (
+                  <motion.li
+                    key={item}
+                    initial={{ opacity: 0, x: 16 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true, margin: "-40px" }}
+                    transition={{ delay: i * 0.05, duration: 0.5, ease: EASE }}
+                    onMouseEnter={() => setHovered(i)}
+                    onMouseLeave={() => setHovered(null)}
+                    className="relative"
+                  >
+                    <div
+                      className={cn(
+                        "relative flex items-center gap-4 py-4 transition-transform duration-300",
+                        on && "translate-x-2",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "grid size-9 shrink-0 place-items-center rounded-xl transition-all duration-300",
+                          on
+                            ? `bg-gradient-to-br ${c.tile} rotate-6 scale-110 text-white shadow-soft`
+                            : `bg-white ${c.text} ring-1 ring-navy-900/8`,
+                        )}
+                      >
+                        <Check className="size-4.5" strokeWidth={3} />
+                      </span>
+                      <p className="text-[1.02rem] font-medium leading-snug text-ink">{item}</p>
+                      <span
+                        className="ml-auto font-display text-sm font-semibold text-navy-900/20"
+                        aria-hidden="true"
+                      >
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                    </div>
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "absolute bottom-0 left-0 h-0.5 origin-left transition-transform duration-500",
+                        c.bar,
+                        on ? "w-full scale-x-100" : "w-full scale-x-0",
+                      )}
+                    />
+                  </motion.li>
+                );
+              })}
+            </ul>
 
-            <Reveal delay={0.26}>
-              <a
-                href="#contact"
-                className="group mt-8 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-well-600 to-navy-700 px-6 py-3.5 text-sm font-semibold text-white shadow-glow-green transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift"
+            <Reveal delay={0.2}>
+              <Link
+                href="/#contact"
+                className="group mt-9 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-well-600 to-navy-700 px-6 py-3.5 text-sm font-semibold text-white shadow-glow-green transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift"
               >
                 Talk to us
                 <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </a>
+              </Link>
             </Reveal>
           </div>
-
-          {/* Checklist */}
-          <StaggerGroup as="ul" className="grid gap-4 sm:grid-cols-2">
-            {whyWellthyfy.map((item, i) => (
-              <StaggerItem as="li" key={item} className="h-full">
-                <motion.div
-                  whileHover={{ y: -5 }}
-                  transition={{ type: "spring", stiffness: 320, damping: 22 }}
-                  className="group flex h-full items-start gap-4 rounded-2xl border border-navy-900/7 bg-white/85 p-5 shadow-soft backdrop-blur-sm transition-shadow duration-400 hover:shadow-lift sm:p-6"
-                >
-                  <span
-                    className={`grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br ${
-                      ACCENT_CYCLE[i % ACCENT_CYCLE.length]
-                    } text-white transition-transform duration-400 group-hover:scale-110 group-hover:rotate-6`}
-                  >
-                    <Check className="size-4.5" strokeWidth={3} />
-                  </span>
-                  <p className="pt-1.5 text-[0.98rem] font-medium leading-snug text-ink">{item}</p>
-                </motion.div>
-              </StaggerItem>
-            ))}
-          </StaggerGroup>
         </div>
       </div>
     </section>
