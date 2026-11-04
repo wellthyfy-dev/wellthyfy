@@ -36,15 +36,19 @@ export default function WhyWellthyfy() {
                 className="absolute -right-6 bottom-6 size-48 rounded-full bg-well-200/60 blur-2xl"
               />
 
-              <div className="group relative mx-auto aspect-[4/5] w-[86%] overflow-hidden rounded-t-[999px] rounded-b-[2.5rem] border-[6px] border-white shadow-lift">
-                <Image
-                  src="/courses/beautician.webp"
-                  alt="A relaxed woman during a facial treatment — hands-on, expert-led beauty training."
-                  fill
-                  sizes="(max-width: 1024px) 80vw, 460px"
-                  className="object-cover object-[80%_center] transition-transform duration-[1.2s] ease-out group-hover:scale-105"
+              <div className="group relative mx-auto w-[92%]">
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-[10%] rounded-full bg-[radial-gradient(circle_at_35%_35%,rgba(101,183,65,0.3),transparent_62%),radial-gradient(circle_at_70%_60%,rgba(244,197,66,0.28),transparent_62%)] blur-2xl"
                 />
-                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-navy-950/40 to-transparent" />
+                <Image
+                  src="/about/meditation.webp"
+                  alt="A woman meditating on a yoga mat, surrounded by icons for yoga, herbal care, nutrition, learning, financial growth and community."
+                  width={1100}
+                  height={986}
+                  sizes="(max-width: 1024px) 85vw, 520px"
+                  className="relative h-auto w-full transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                />
               </div>
 
               {/* Floating trust badge */}
@@ -75,7 +79,7 @@ export default function WhyWellthyfy() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true, margin: "-80px" }}
                 transition={{ delay: 0.4, duration: 0.6, ease: EASE }}
-                className="absolute right-0 top-12 flex items-center gap-2 rounded-full border border-gold-200 bg-white/95 px-4 py-2.5 text-sm font-semibold text-gold-800 shadow-lift sm:right-2"
+                className="absolute bottom-24 right-0 flex items-center gap-2 rounded-full border border-gold-200 bg-white/95 px-4 py-2.5 text-sm font-semibold text-gold-800 shadow-lift sm:right-2"
               >
                 <Sparkles className="size-4 text-gold-600 animate-float" />
                 Holistic, not a shortcut
@@ -154,7 +158,7 @@ export default function WhyWellthyfy() {
 
             <Reveal delay={0.2}>
               <Link
-                href="/#contact"
+                href="/contact"
                 className="group mt-9 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-well-600 to-navy-700 px-6 py-3.5 text-sm font-semibold text-white shadow-glow-green transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift"
               >
                 Talk to us

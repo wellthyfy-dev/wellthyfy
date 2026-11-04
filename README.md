@@ -184,6 +184,16 @@ Social profiles and owner input:
 - Optional, if you have them: company registration details (CIN), founding date and founder
   names can be added to the Organization — only with verified values.
 
+**Google Business Profile link.** `GOOGLE_BUSINESS_PROFILE` / `GEO` in `lib/seo.ts` come from
+the place embedded on the Contact page (CID 16816278786787091535). The Organization is
+typed `Organization` + `LocalBusiness` and lists that profile in `sameAs` and `hasMap`, so
+Google can join the website and the Maps listing. The profile is currently named
+"Wellthyfy lifestyle Venture" — rename it to exactly "Wellthyfy Lifestyle Ventures" so the
+name matches the website, schema and socials.
+
+Every inner page emits `BreadcrumbList`; course pages add `Course`; `/become-a-faculty`
+adds `FAQPage` generated from the visible FAQ. The sitemap includes image entries.
+
 ### Manual steps after deploying (cannot be done from the codebase)
 
 1. **Google Search Console** (https://search.google.com/search-console/) — add a **Domain

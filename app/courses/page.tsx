@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { pageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd, pageMetadata, serializeJsonLd } from "@/lib/seo";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, Clock, GraduationCap, Info, Sparkles } from "lucide-react";
 import CourseCover from "@/components/sections/CourseCover";
@@ -9,17 +9,22 @@ import { accentStyles, cn } from "@/lib/accents";
 import { CATALOGUE_COUNT, coursePillars, coursesForPillar } from "@/lib/courses";
 import { courses as skillCourses } from "@/lib/site";
 
-const description = `All ${CATALOGUE_COUNT} Wellthyfy courses across wellness, wealth and happiness — plus our professional beautician, yoga instructor and digital marketing training.`;
-
 export const metadata: Metadata = pageMetadata({
-  title: "Courses",
-  description,
+  title: "Wellness, Wealth & Skill Courses in Puducherry",
+  description:
+    `Browse all ${CATALOGUE_COUNT} Wellthyfy courses in wellness, wealth and happiness, plus yoga instructor, beautician and digital marketing training — online and offline.`,
   path: "/courses",
 });
 
 export default function CoursesPage() {
   return (
     <div className="relative pb-24 pt-32 md:pt-40">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd(breadcrumbJsonLd([{ name: "Courses", path: "/courses" }])),
+        }}
+      />
       <div className="container-page">
         {/* Header */}
         <div className="mx-auto max-w-3xl text-center">
@@ -147,7 +152,7 @@ export default function CoursesPage() {
 
                       <div className="mt-auto pt-6">
                         <Link
-                          href="/#contact"
+                          href="/contact"
                           className={cn(
                             "inline-flex w-full items-center justify-center gap-2 rounded-full border bg-white px-5 py-3 text-sm font-semibold text-navy-800 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-soft",
                             a.border,
@@ -227,7 +232,7 @@ export default function CoursesPage() {
 
                       <div className="mt-auto pt-8">
                         <Link
-                          href="/#contact"
+                          href="/contact"
                           className={cn(
                             "inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5",
                             course.cta === "Enroll Now"
@@ -255,7 +260,7 @@ export default function CoursesPage() {
             lives.
           </p>
           <Link
-            href="/#contact"
+            href="/contact"
             className="group mt-8 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-well-600 via-well-500 to-navy-700 px-8 py-4 text-base font-semibold text-white shadow-glow-green transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift"
           >
             Talk to our team

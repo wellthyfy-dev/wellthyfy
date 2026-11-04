@@ -275,18 +275,26 @@ function MapEmbed() {
   );
 }
 
-export default function Contact() {
+/** Contact details, map and enquiry form. On /contact the page header supplies the title. */
+export default function Contact({ showHeading = true }: { showHeading?: boolean }) {
   return (
-    <section id="contact" className="relative scroll-mt-28 py-20 sm:py-24 lg:py-28">
+    <section
+      id="contact"
+      className={`relative scroll-mt-28 ${showHeading ? "py-20 sm:py-24 lg:py-28" : "pb-20 pt-4 sm:pb-24 lg:pb-28"}`}
+    >
       <div className="container-page">
-        <SectionHeading
-          eyebrow="Contact"
-          title="Let us start"
-          highlight="something good"
-          description="Call, write or visit us in Puducherry — we would love to hear where you want to grow."
-        />
+        {showHeading && (
+          <SectionHeading
+            eyebrow="Contact"
+            title="Let us start"
+            highlight="something good"
+            description="Call, write or visit us in Puducherry — we would love to hear where you want to grow."
+          />
+        )}
 
-        <div className="mt-14 grid gap-7 lg:mt-16 lg:grid-cols-[1fr_1.15fr]">
+        <div
+          className={`grid gap-7 lg:grid-cols-[1fr_1.15fr] ${showHeading ? "mt-14 lg:mt-16" : ""}`}
+        >
           {/* Details + map */}
           <div className="flex min-w-0 flex-col gap-6">
             <Reveal direction="right">

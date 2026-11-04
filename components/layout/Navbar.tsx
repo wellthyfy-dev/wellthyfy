@@ -43,7 +43,6 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const [contactInView, setContactInView] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
 
   // Read auth in the browser rather than in the layout: touching cookies
@@ -70,25 +69,8 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // On the homepage, "Contact" lights up while the contact section is on screen.
-  useEffect(() => {
-    setContactInView(false);
-    if (pathname !== "/") return;
-    const el = document.getElementById("contact");
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setContactInView(entry.isIntersecting),
-      { rootMargin: "-45% 0px -45% 0px" },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [pathname]);
-
-  const isActive = (href: string) => {
-    if (href === "/#contact") return pathname === "/" && contactInView;
-    if (href === "/") return pathname === "/" && !contactInView;
-    return pathname === href || pathname.startsWith(`${href}/`);
-  };
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 
   // Lock body scroll while the mobile sheet is open.
   useEffect(() => {

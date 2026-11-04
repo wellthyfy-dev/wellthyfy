@@ -1,6 +1,8 @@
 import {
   BRAND,
   COMPANY_DESCRIPTION,
+  GEO,
+  GOOGLE_BUSINESS_PROFILE,
   LEGAL_NAME,
   ORGANIZATION_ID,
   ORGANIZATION_LOGO,
@@ -9,21 +11,23 @@ import {
   WEBSITE_ID,
   serializeJsonLd,
 } from "@/lib/seo";
-import { siteConfig } from "@/lib/site";
+import { services, siteConfig } from "@/lib/site";
 
 /**
  * The one Organization entity for the site, plus the WebSite that names it.
  *
  * Rendered on the homepage only, so exactly one Organization is ever emitted.
- * Every value here is shown elsewhere on the site (logo, contact details,
- * registered address); nothing is inferred.
+ * It is also a LocalBusiness: Wellthyfy has a public Google Business Profile at
+ * its Puducherry address, and `hasMap` / `sameAs` point at that exact listing so
+ * Google can join the website and the profile into one entity.
+ * Every value here is shown elsewhere on the site; nothing is inferred.
  */
 export default function OrganizationJsonLd() {
   const graph = {
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": "Organization",
+        "@type": ["Organization", "LocalBusiness"],
         "@id": ORGANIZATION_ID,
         name: BRAND,
         alternateName: siteConfig.name,
@@ -48,6 +52,10 @@ export default function OrganizationJsonLd() {
           addressRegion: "Puducherry",
           addressCountry: "IN",
         },
+        geo: { "@type": "GeoCoordinates", latitude: GEO.latitude, longitude: GEO.longitude },
+        hasMap: GOOGLE_BUSINESS_PROFILE,
+        areaServed: { "@type": "Country", name: "India" },
+        knowsAbout: services.map((s) => s.title),
         contactPoint: [
           {
             "@type": "ContactPoint",

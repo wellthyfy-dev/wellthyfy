@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { pageMetadata } from "@/lib/seo";
+import { BRAND, ORGANIZATION_ID, SITE_URL, breadcrumbJsonLd, pageMetadata, serializeJsonLd } from "@/lib/seo";
 import QRCode from "qrcode";
 import {
   ArrowLeft,
@@ -106,6 +106,35 @@ export default async function CourseDetailPage({
 
   return (
     <div className="relative pb-24 pt-32 md:pt-40">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd([
+            breadcrumbJsonLd([
+              { name: "Courses", path: "/courses" },
+              { name: course.title, path: `/courses/${course.slug}` },
+            ]),
+            {
+              "@context": "https://schema.org",
+              "@type": "Course",
+              name: course.title,
+              description: (course.summary ?? course.description).slice(0, 300),
+              url: `${SITE_URL}/courses/${course.slug}`,
+              ...(course.cover_url ? { image: course.cover_url } : {}),
+              inLanguage: course.language ?? "en",
+              provider: { "@type": "Organization", "@id": ORGANIZATION_ID, name: BRAND, url: SITE_URL },
+              offers: {
+                "@type": "Offer",
+                category: course.price_inr === 0 ? "Free" : "Paid",
+                price: course.price_inr,
+                priceCurrency: "INR",
+                availability: "https://schema.org/InStock",
+                url: `${SITE_URL}/courses/${course.slug}`,
+              },
+            },
+          ]),
+        }}
+      />
       <div className="container-page">
         <Link
           href="/courses"

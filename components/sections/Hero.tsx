@@ -3,6 +3,7 @@
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { ArrowRight, Users } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { PersonAvatar } from "@/components/illustrations/Illustrations";
 import { EASE } from "@/components/ui/Reveal";
@@ -22,8 +23,8 @@ const HERO_MASK =
 
 function CommunityBadge({ className = "" }: { className?: string }) {
   return (
-    <a
-      href="#contact"
+    <Link
+      href="/contact"
       className={`group inline-flex items-center gap-3 rounded-full border border-white/70 bg-white/80 py-2 pl-2 pr-4 shadow-soft backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-lift ${className}`}
     >
       <span className="flex -space-x-2.5">
@@ -48,7 +49,7 @@ function CommunityBadge({ className = "" }: { className?: string }) {
         <span className="block font-semibold text-ink">Join our community</span>
         <span className="text-ink-soft">Grow together, every day</span>
       </span>
-    </a>
+    </Link>
   );
 }
 
@@ -142,7 +143,7 @@ export default function Hero() {
             className="inline-flex items-center gap-2.5 rounded-full border border-well-200 bg-white/80 py-1.5 pl-1.5 pr-4 shadow-sm backdrop-blur-sm"
           >
             <span className="rounded-full bg-gradient-to-r from-well-600 to-navy-700 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
-              Wellthyfy
+              Puducherry
             </span>
             <span className="text-xs font-medium text-ink-soft">
               A complete lifestyle company, not a shortcut
@@ -155,14 +156,17 @@ export default function Hero() {
             transition={{ delay: 0.1, duration: 0.75, ease: EASE }}
             className="mt-7 text-[2.6rem] font-semibold leading-[1.06] sm:text-6xl xl:text-[4rem]"
           >
+            {/* The brand is part of the main heading so search engines read it as the page topic. */}
+            <span className="mb-3 block font-sans text-sm font-bold uppercase tracking-[0.22em] text-navy-700 sm:text-base">
+              Wellthyfy Lifestyle Ventures
+            </span>
             Empowering{" "}
             <span className="bg-gradient-to-r from-well-600 to-well-400 bg-clip-text text-transparent">
-              Health
+              Wellness
             </span>
             ,{" "}
             <span className="bg-gradient-to-r from-navy-700 to-navy-500 bg-clip-text text-transparent">
-              Wealth
-            </span>{" "}
+Wealthiness            </span>{" "}
             &amp;{" "}
             <span className="relative inline-block">
               <span className="bg-gradient-to-r from-gold-600 to-gold-400 bg-clip-text text-transparent">
@@ -221,13 +225,13 @@ export default function Hero() {
               Explore Courses
               <ArrowRight className="size-4.5 transition-transform duration-300 group-hover:translate-x-1" />
             </a>
-            <a
-              href="#contact"
+            <Link
+              href="/contact"
               className="group inline-flex w-full items-center justify-center gap-2 rounded-full border border-navy-200 bg-white/85 px-8 py-4 text-base font-semibold text-navy-800 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-navy-300 hover:bg-white hover:shadow-soft sm:w-auto"
             >
               Join Community
               <Users className="size-4.5 transition-transform duration-300 group-hover:scale-110" />
-            </a>
+            </Link>
           </motion.div>
 
           <motion.div

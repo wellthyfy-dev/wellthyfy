@@ -43,13 +43,23 @@ export const DEFAULT_OG_IMAGE = {
  * the homepage description and the Organization schema.
  */
 export const COMPANY_DESCRIPTION =
-  "Wellthyfy is a holistic lifestyle company in Puducherry, India, empowering individuals through wellness programs, financial education, skill development, community growth and professional courses.";
+  "Wellthyfy Lifestyle Ventures is a community-driven lifestyle transformation company in Puducherry, India, bringing together wellness services, holistic health support, financial education, skill development and personal growth on one platform.";
+
+/**
+ * The Google Business Profile. The id comes from the place embedded on the
+ * Contact page (feature id 0x3a53618b212aea89:0xe95f6c75ca61a44f), so this is
+ * the exact listing Google already shows on Maps.
+ */
+export const GOOGLE_BUSINESS_PROFILE = "https://maps.google.com/?cid=16816278786787091535";
+
+/** Map position of that listing. */
+export const GEO = { latitude: 11.941944706315676, longitude: 79.80177684360001 };
 
 /**
  * Official social profiles for `sameAs` (from `socialProfiles` in lib/site.ts).
  * Add new accounts there; only list profiles Wellthyfy actually owns.
  */
-export const SOCIAL_PROFILES: string[] = Object.values(socialProfiles);
+export const SOCIAL_PROFILES: string[] = [...Object.values(socialProfiles), GOOGLE_BUSINESS_PROFILE];
 
 /**
  * Complete metadata for a public page: title, description, canonical URL and
@@ -118,4 +128,19 @@ export function serializeJsonLd(data: unknown) {
     out += unsafe.has(code) ? `${backslash}u${code.toString(16).padStart(4, "0")}` : ch;
   }
   return out;
+}
+
+/** BreadcrumbList JSON-LD for an inner page: Home › … › current page. */
+export function breadcrumbJsonLd(trail: { name: string; path: string }[]) {
+  const items = [{ name: "Home", path: "/" }, ...trail];
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: item.name,
+      item: item.path === "/" ? SITE_URL : `${SITE_URL}${item.path}`,
+    })),
+  };
 }

@@ -44,21 +44,47 @@ export default function About({ variant = "full" }: { variant?: "full" | "teaser
 
           <div>
             <Reveal direction="left">
-              <Eyebrow>About Wellthyfy</Eyebrow>
+              <Eyebrow>{teaser ? "About Wellthyfy" : "Our Approach"}</Eyebrow>
             </Reveal>
 
             <Reveal direction="left" delay={0.08}>
               <h2 className="mt-6 text-3xl font-semibold leading-[1.14] sm:text-4xl lg:text-[2.7rem]">
-                A holistic lifestyle company built on{" "}
-                <span className="text-gradient-brand">balance</span>
+                {teaser ? (
+                  <>
+                    A community-driven lifestyle{" "}
+                    <span className="text-gradient-brand">transformation</span> company
+                  </>
+                ) : (
+                  <>
+                    More than a wellness centre or{" "}
+                    <span className="text-gradient-brand">training institute</span>
+                  </>
+                )}
               </h2>
             </Reveal>
 
             <Reveal direction="left" delay={0.14}>
-              <p className="mt-6 text-base leading-relaxed text-ink-soft sm:text-lg">
-                Wellthyfy Lifestyle Ventures Pvt. Ltd. is a holistic lifestyle company dedicated to
-                empowering individuals and communities to achieve balanced and fulfilling lives.
-              </p>
+              {teaser ? (
+                <p className="mt-6 text-base leading-relaxed text-ink-soft sm:text-lg">
+                  Wellthyfy Lifestyle Ventures is a community-driven lifestyle transformation company
+                  committed to helping individuals and families build a healthier, more confident,
+                  and fulfilling life — bringing wellness, holistic health, financial education,
+                  skill development and personal growth together on one platform.
+                </p>
+              ) : (
+                <>
+                  <p className="mt-6 text-base leading-relaxed text-ink-soft sm:text-lg">
+                    Our approach goes beyond a traditional wellness centre or training institute. We
+                    believe that lasting transformation is strengthened by knowledge, guidance, and a
+                    supportive community.
+                  </p>
+                  <p className="mt-4 text-base leading-relaxed text-ink-soft sm:text-lg">
+                    From wellness consultations and lifestyle programs to financial awareness,
+                    professional training, and entrepreneurship opportunities, Wellthyfy aims to make
+                    personal development accessible, practical, and relevant.
+                  </p>
+                </>
+              )}
             </Reveal>
 
             <Reveal direction="left" delay={0.2}>

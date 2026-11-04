@@ -151,7 +151,7 @@ export default function WhoCanJoin() {
                     {audience.description}
                   </p>
                   <Link
-                    href="/#contact"
+                    href="/contact"
                     className="group relative mt-7 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-well-600 to-navy-700 px-6 py-3 text-sm font-semibold text-white shadow-glow-green transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift"
                   >
                     This is me — get started

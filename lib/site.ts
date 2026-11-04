@@ -43,13 +43,13 @@ export const facultyVideo = {
 
 export type Accent = "green" | "navy" | "gold";
 
-/** Main menu. Contact stays a section on the homepage; the rest are pages. */
+/** Main menu — every item is its own page. */
 export const navLinks = [
   { label: "Home", href: "/" },
   { label: "About", href: "/about" },
   { label: "Services", href: "/services" },
   { label: "Courses", href: "/courses" },
-  { label: "Contact", href: "/#contact" },
+  { label: "Contact", href: "/contact" },
 ];
 
 /** "Health & Wellness" -> "health-wellness": the service's anchor on /services and its image name. */

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { pageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd, pageMetadata, serializeJsonLd } from "@/lib/seo";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -19,12 +19,11 @@ import FacultyVideo from "@/components/sections/FacultyVideo";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/ui/Reveal";
 import { Eyebrow, SectionHeading } from "@/components/ui/SectionHeading";
 
-const description =
-  "Teach any skill in your own module and earn with Wellthyfy. Apply, get approved, publish your course and receive monthly payouts. No registration fee.";
-
 export const metadata: Metadata = pageMetadata({
-  title: "Become a Faculty",
-  description,
+  title: "Earn Money Teaching Your Skills – Become a Faculty | Wellthyfy",
+  absoluteTitle: true,
+  description:
+    "Earn money teaching your skills with Wellthyfy. Teach part-time or full-time, online from home or in person — no registration fee, monthly payouts. Apply free.",
   path: "/become-a-faculty",
 });
 
@@ -142,6 +141,14 @@ const faqs = [
     a: "Our team reviews your application. If it is approved, we email you your @wellthyfy.in faculty mail id and a private link to create your faculty account. From your dashboard you then create your course and submit it — every course is approved by our team before it goes live.",
   },
   {
+    q: "Can I teach part-time or from home?",
+    a: "Yes. You choose how your course is delivered — online live, recorded, offline or hybrid — so you can teach from home and fit it around your current job, business or studies.",
+  },
+  {
+    q: "How much can I earn by teaching?",
+    a: "You set your own course fee and earn from every student who enrols and pays. Your earnings are paid out every month, and there is no registration fee to get started.",
+  },
+  {
     q: "Do I set my own fee?",
     a: "Yes. You set the fee when you create your course, and it appears on your course page once the course is approved.",
   },
@@ -151,9 +158,26 @@ const faqs = [
   },
 ];
 
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
+
 export default function BecomeFacultyPage() {
   return (
     <div className="relative">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd(breadcrumbJsonLd([{ name: "Become a Faculty", path: "/become-a-faculty" }])),
+        }}
+      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }} />
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden pb-20 pt-32 md:pt-44 lg:pb-28">
         <div className="container-page">
@@ -164,8 +188,8 @@ export default function BecomeFacultyPage() {
 
             <Reveal delay={0.08}>
               <h1 className="mt-7 text-[2.5rem] font-semibold leading-[1.06] sm:text-6xl lg:text-7xl">
-                Teach what you know.{" "}
-                <span className="text-gradient-brand">Earn</span> with every student.
+                Teach your skills.{" "}
+                <span className="text-gradient-brand">Earn money</span> with every student.
               </h1>
             </Reveal>
 
@@ -177,9 +201,9 @@ export default function BecomeFacultyPage() {
 
             <Reveal delay={0.16}>
               <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft sm:text-lg">
-                Become a faculty in the Wellthyfy venture. Teach any skill, in your own module —
-                we bring the platform, the students and the payments, and you bring the
-                expertise.
+                Become a Wellthyfy faculty and earn money teaching your skills — part-time or
+                full-time, online from home or in person. Teach any skill in your own module: we
+                bring the platform, the students and the payments, and you bring the expertise.
               </p>
             </Reveal>
 
@@ -211,7 +235,7 @@ export default function BecomeFacultyPage() {
 
             <Reveal delay={0.32}>
               <ul className="mt-8 flex flex-wrap items-center justify-center gap-3">
-                {["Any skill", "Your own module", "Monthly payouts"].map((t) => (
+                {["Any skill", "Part-time or full-time", "Teach online or offline", "Monthly payouts"].map((t) => (
                   <li
                     key={t}
                     className="inline-flex items-center gap-2 rounded-full border border-well-200 bg-white/80 px-4 py-2 text-sm font-medium text-navy-800 shadow-sm backdrop-blur-sm"

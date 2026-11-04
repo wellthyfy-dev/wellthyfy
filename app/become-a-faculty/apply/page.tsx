@@ -1,19 +1,25 @@
 import type { Metadata } from "next";
-import { pageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd, pageMetadata, serializeJsonLd } from "@/lib/seo";
 import Link from "next/link";
 import { ArrowLeft, BadgeCheck } from "lucide-react";
 import FacultyApplyForm from "@/components/platform/FacultyApplyForm";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Apply to become a Faculty",
+  title: "Apply Free – Teach & Earn as a Faculty",
   description:
-    "Apply to teach on Wellthyfy — free, no registration fee. Share your details, your qualification, and your PAN and Aadhaar cards.",
+    "Apply free to become a Wellthyfy faculty and start earning by teaching your skills. No registration fee — share your details, qualification, PAN and Aadhaar.",
   path: "/become-a-faculty/apply",
 });
 
 export default function ApplyPage() {
   return (
     <div className="relative pb-24 pt-32 md:pt-40">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd(breadcrumbJsonLd([{ name: "Become a Faculty", path: "/become-a-faculty" }, { name: "Apply", path: "/become-a-faculty/apply" }])),
+        }}
+      />
       <div className="container-page">
         <div className="mx-auto max-w-3xl">
           <Link

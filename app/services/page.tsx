@@ -8,9 +8,9 @@ import { pageMetadata } from "@/lib/seo";
 import { serviceSlug, services } from "@/lib/site";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Services",
+  title: "Wellness, Financial Education & Skill Services",
   description:
-    "Wellthyfy's six core services: health & wellness, financial education, lifestyle coaching, skill development, community empowerment and partnership opportunities.",
+    "Wellthyfy's services in Puducherry: health & wellness, yoga, financial education, lifestyle coaching, skill development and community programs.",
   path: "/services",
 });
 
@@ -19,6 +19,7 @@ export default function ServicesPage() {
     <>
       <PageHeader
         crumb="Services"
+        path="/services"
         eyebrow="Core Services"
         title="Everything a balanced life needs,"
         highlight="in one place"
