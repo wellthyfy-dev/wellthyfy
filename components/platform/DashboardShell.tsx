@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GraduationCap, LogOut, Users } from "lucide-react";
+import { GraduationCap, LogOut, UserPen, Users } from "lucide-react";
 import { cn } from "@/lib/accents";
 import type { Profile } from "@/lib/platform";
 
@@ -45,8 +45,15 @@ export function DashboardShell({
             {subtitle && <p className="mt-2 text-base text-ink-soft">{subtitle}</p>}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {action}
+            <Link
+              href="/dashboard/profile"
+              className="inline-flex items-center gap-2 rounded-full border border-navy-200 bg-white/80 px-4 py-2.5 text-sm font-semibold text-navy-800 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-navy-300 hover:shadow-soft"
+            >
+              <UserPen className="size-4" strokeWidth={2.2} />
+              Edit profile
+            </Link>
             <form action="/auth/signout" method="post">
               <button
                 type="submit"

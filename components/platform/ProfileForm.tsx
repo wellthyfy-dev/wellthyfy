@@ -55,16 +55,28 @@ function FileField({
   );
 }
 
-export default function ProfileForm({ profile }: { profile: Profile }) {
+/**
+ * Profile details + Aadhaar. "onboarding" (first time) continues to the
+ * dashboard; "edit" (from /dashboard/profile) saves in place and confirms.
+ */
+export default function ProfileForm({
+  profile,
+  mode = "onboarding",
+}: {
+  profile: Profile;
+  mode?: "onboarding" | "edit";
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     setBusy(true);
     setError(null);
+    setSaved(false);
 
     const supabase = createClient();
 
@@ -105,6 +117,12 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
 
       if (updateError) throw new Error(updateError.message);
 
+      if (mode === "edit") {
+        setSaved(true);
+        setBusy(false);
+        router.refresh();
+        return;
+      }
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
@@ -232,6 +250,16 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
         </p>
       )}
 
+      {saved && (
+        <p
+          role="status"
+          className="flex items-start gap-2.5 rounded-xl border border-well-200 bg-well-50 px-4 py-3 text-sm font-medium text-well-800 sm:col-span-2"
+        >
+          <CheckCircle2 className="mt-0.5 size-4.5 shrink-0 text-well-600" />
+          Your profile has been updated.
+        </p>
+      )}
+
       <div className="sm:col-span-2">
         <button
           type="submit"
@@ -245,7 +273,7 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
             </>
           ) : (
             <>
-              Save and continue
+              {mode === "edit" ? "Save changes" : "Save and continue"}
               <CheckCircle2 className="size-4.5" />
             </>
           )}

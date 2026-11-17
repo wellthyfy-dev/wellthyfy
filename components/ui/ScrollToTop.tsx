@@ -43,7 +43,7 @@ export default function ScrollToTop() {
           whileHover={{ scale: 1.12 }}
           whileTap={{ scale: 0.9 }}
           transition={{ type: "spring", stiffness: 380, damping: 22 }}
-          className="group fixed bottom-6 right-5 z-50 grid size-13 place-items-center rounded-full bg-white/90 shadow-lift backdrop-blur-md ring-1 ring-navy-900/8 sm:bottom-8 sm:right-8"
+          className="group fixed bottom-24 right-5 z-50 grid size-13 place-items-center rounded-full bg-white/90 shadow-lift backdrop-blur-md ring-1 ring-navy-900/8 sm:bottom-28 sm:right-8"
         >
           {/* Reading-progress ring */}
           <svg

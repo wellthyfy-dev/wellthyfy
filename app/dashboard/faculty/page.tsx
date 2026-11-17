@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { EyeOff, MessageSquareWarning, Pencil, Plus, Send, Undo2 } from "lucide-react";
+import { CalendarDays, EyeOff, MessageSquareWarning, Pencil, Plus, Send, Undo2 } from "lucide-react";
 import { DashboardShell, EmptyState, StatCard } from "@/components/platform/DashboardShell";
 import { accentStyles, cn } from "@/lib/accents";
 import {
@@ -46,6 +46,12 @@ export default async function FacultyDashboard() {
 
   const courses = (courseRows ?? []) as Course[];
   const orders = (orderRows ?? []) as Order[];
+
+  const { data: batchRows } = await supabase
+    .from("batches")
+    .select("id, name")
+    .eq("faculty_id", profile.id);
+  const batchNames = new Map((batchRows ?? []).map((b) => [b.id as string, b.name as string]));
 
   const published = courses.filter((c) => c.status === "published").length;
   const inReview = courses.filter((c) => c.status === "pending_review").length;
@@ -183,6 +189,15 @@ export default async function FacultyDashboard() {
                           View
                         </Link>
                       )}
+                      {course.mode !== "recorded" && (
+                        <Link
+                          href={`/dashboard/faculty/courses/${course.id}/batches`}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-well-300 bg-well-50 px-4 py-2 text-xs font-semibold text-well-800 transition-all duration-300 hover:-translate-y-0.5 hover:bg-well-100"
+                        >
+                          <CalendarDays className="size-3.5" strokeWidth={2.4} />
+                          Batches &amp; classes
+                        </Link>
+                      )}
                       <Link
                         href={`/dashboard/faculty/courses/${course.id}/edit`}
                         className="inline-flex items-center gap-1.5 rounded-full border border-navy-200 bg-white px-4 py-2 text-xs font-semibold text-navy-800 transition-all duration-300 hover:-translate-y-0.5 hover:bg-navy-50"
@@ -282,6 +297,14 @@ export default async function FacultyDashboard() {
                     </td>
                     <td className="px-5 py-4">
                       <p className="font-medium text-ink">{order.course_title}</p>
+                      {order.batch_id && batchNames.has(order.batch_id) && (
+                        <Link
+                          href={`/dashboard/faculty/batches/${order.batch_id}`}
+                          className="mt-0.5 block text-xs font-semibold text-well-700 hover:underline"
+                        >
+                          {batchNames.get(order.batch_id)}
+                        </Link>
+                      )}
                       <p className="mt-0.5 text-xs text-ink-soft">
                         {new Date(order.created_at).toLocaleDateString("en-IN", {
                           day: "numeric",

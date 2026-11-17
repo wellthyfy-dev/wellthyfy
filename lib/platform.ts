@@ -94,6 +94,8 @@ export type Order = {
   amount_inr: number;
   utr: string;
   payer_note: string | null;
+  /** The live batch chosen at enrolment, when the course runs in batches. */
+  batch_id: string | null;
   status: OrderStatus;
   created_at: string;
   reviewed_at: string | null;

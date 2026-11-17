@@ -53,3 +53,6 @@ export default function SocialLinks() {
     </ul>
   );
 }
+
+/** The WhatsApp mark, reused by the floating consultation button. */
+export const whatsappIconPath = socials.find((s) => s.label === "WhatsApp")!.path;

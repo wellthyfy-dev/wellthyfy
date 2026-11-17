@@ -5,6 +5,7 @@ import MetaPixel from "@/components/analytics/MetaPixel";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
+import ConsultationButton from "@/components/ui/ConsultationButton";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import { BRAND, COMPANY_DESCRIPTION, DEFAULT_OG_IMAGE, LEGAL_NAME, SITE_URL } from "@/lib/seo";
@@ -84,6 +85,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Navbar />
         <main>{children}</main>
         <Footer />
+        <ConsultationButton />
         <ScrollToTop />
         <GoogleTags />
         <MetaPixel />

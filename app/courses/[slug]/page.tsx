@@ -7,15 +7,20 @@ import QRCode from "qrcode";
 import {
   ArrowLeft,
   BadgeCheck,
+  CalendarDays,
   Clock,
   Download,
   FileText,
   Globe,
   GraduationCap,
   Layers,
+  MapPin,
+  MessageCircle,
   User,
+  Users,
+  Video,
 } from "lucide-react";
-import EnrollPanel from "@/components/platform/EnrollPanel";
+import EnrollPanel, { type BatchChoice } from "@/components/platform/EnrollPanel";
 import { Icon } from "@/components/ui/Icon";
 import { accentStyles, cn } from "@/lib/accents";
 import {
@@ -29,6 +34,15 @@ import {
   type Course,
   type Order,
 } from "@/lib/platform";
+import {
+  BATCH_MODE_LABELS,
+  formatStartDate,
+  isOnline,
+  mapsLink,
+  scheduleSummary,
+  type Batch,
+} from "@/lib/batches";
+import { whatsappUrl } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionProfile } from "@/lib/supabase/auth";
 
@@ -88,6 +102,35 @@ export default async function CourseDetailPage({
       .maybeSingle();
     existing = (data as Order | null) ?? null;
   }
+
+  // Open batches students can pick, with live seat counts.
+  const db = await createClient();
+  const { data: batchRows } = await db
+    .from("batches")
+    .select("*")
+    .eq("course_id", course.id)
+    .eq("status", "open")
+    .order("start_date");
+  const batches = (batchRows ?? []) as Batch[];
+  const { data: takenRows } = batches.length
+    ? await db.rpc("batch_seats_taken", { p_batches: batches.map((b) => b.id) })
+    : { data: [] };
+  const taken = new Map(
+    ((takenRows ?? []) as { batch_id: string; taken: number }[]).map((r) => [r.batch_id, r.taken]),
+  );
+  const choices: BatchChoice[] = batches.map((b) => ({
+    id: b.id,
+    name: b.name,
+    schedule: scheduleSummary(b),
+    starts: formatStartDate(b.start_date),
+    mode: BATCH_MODE_LABELS[b.mode],
+    online: isOnline(b.mode),
+    seatsLeft: Math.max(0, b.seats - (taken.get(b.id) ?? 0)),
+  }));
+  const allFull = choices.length > 0 && choices.every((c) => c.seatsLeft === 0);
+  const notifyUrl = `${whatsappUrl}?text=${encodeURIComponent(
+    `Hi Wellthyfy, please tell me when the next batch of "${course.title}" opens.`,
+  )}`;
 
   const upiId = process.env.NEXT_PUBLIC_UPI_ID ?? "";
   const qrSvg = await QRCode.toString(
@@ -217,6 +260,74 @@ export default async function CourseDetailPage({
               </ul>
             )}
 
+            {batches.length > 0 && (
+              <div className="mt-10">
+                <h2 className="text-xl font-semibold sm:text-2xl">Upcoming batches</h2>
+                <p className="mt-1.5 text-sm text-ink-soft">
+                  Learn live with a small group. Every class is recorded and shared with your batch
+                  as a recap.
+                </p>
+                <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {batches.map((b, i) => {
+                    const left = choices[i].seatsLeft;
+                    return (
+                      <li
+                        key={b.id}
+                        className="rounded-2xl border border-navy-900/7 bg-white/85 p-4 shadow-soft backdrop-blur-sm"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="font-semibold text-ink">{b.name}</p>
+                          <span
+                            className={cn(
+                              "shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold",
+                              left === 0
+                                ? "bg-red-50 text-red-700"
+                                : left <= 5
+                                  ? "bg-gold-50 text-gold-800"
+                                  : "bg-well-50 text-well-800",
+                            )}
+                          >
+                            {left === 0 ? "Full" : `${left} of ${b.seats} seats left`}
+                          </span>
+                        </div>
+                        <p className="mt-2 flex items-center gap-2 text-sm text-ink-soft">
+                          <CalendarDays className="size-4 shrink-0 text-navy-600" />
+                          {scheduleSummary(b)}
+                        </p>
+                        <p className="mt-1 flex items-center gap-2 text-sm text-ink-soft">
+                          <Users className="size-4 shrink-0 text-navy-600" />
+                          {b.session_count} classes · starts {formatStartDate(b.start_date)}
+                        </p>
+                        <p className="mt-1 flex items-start gap-2 text-sm text-ink-soft">
+                          {isOnline(b.mode) ? (
+                            <Video className="mt-0.5 size-4 shrink-0 text-navy-600" />
+                          ) : (
+                            <MapPin className="mt-0.5 size-4 shrink-0 text-navy-600" />
+                          )}
+                          <span>
+                            {BATCH_MODE_LABELS[b.mode]}
+                            {b.venue && (
+                              <>
+                                {" · "}
+                                <a
+                                  href={mapsLink(b.venue)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-navy-700 underline-offset-2 hover:underline"
+                                >
+                                  {b.venue}
+                                </a>
+                              </>
+                            )}
+                          </span>
+                        </p>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
             <div className="mt-10">
               <h2 className="text-xl font-semibold sm:text-2xl">About this course</h2>
               <div className="mt-4 whitespace-pre-wrap text-[0.98rem] leading-relaxed text-ink-soft">
@@ -334,6 +445,22 @@ export default async function CourseDetailPage({
                       Complete profile
                     </Link>
                   </div>
+                ) : allFull ? (
+                  <div className="mt-4 rounded-xl border border-gold-200 bg-gold-50 px-4 py-4">
+                    <p className="text-sm font-semibold text-ink">All current batches are full</p>
+                    <p className="mt-1 text-xs leading-relaxed text-ink-soft">
+                      Message us and we&apos;ll tell you as soon as the next batch opens.
+                    </p>
+                    <a
+                      href={notifyUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#25D366] px-4 py-2 text-xs font-semibold text-white"
+                    >
+                      <MessageCircle className="size-3.5" />
+                      Notify me on WhatsApp
+                    </a>
+                  </div>
                 ) : (
                   <div className="mt-4">
                     <EnrollPanel
@@ -342,6 +469,7 @@ export default async function CourseDetailPage({
                       amount={course.price_inr}
                       upiId={upiId}
                       qrSvg={qrSvg}
+                      batches={choices}
                     />
                   </div>
                 )}

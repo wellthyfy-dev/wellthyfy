@@ -11,7 +11,15 @@ const TONE: Record<string, string> = {
   rejected: "bg-red-50 text-red-800 border-red-200",
 };
 
-function OrdersTable({ orders, actions }: { orders: Order[]; actions: boolean }) {
+function OrdersTable({
+  orders,
+  actions,
+  batchNames,
+}: {
+  orders: Order[];
+  actions: boolean;
+  batchNames: Map<string, string>;
+}) {
   return (
     <div className="overflow-x-auto rounded-2xl border border-navy-900/7 bg-white/85 shadow-soft backdrop-blur-sm">
       <table className="w-full min-w-[52rem] text-left text-sm">
@@ -34,6 +42,11 @@ function OrdersTable({ orders, actions }: { orders: Order[]; actions: boolean })
               </td>
               <td className="px-5 py-4">
                 <p className="font-medium text-ink">{o.course_title}</p>
+                {o.batch_id && batchNames.has(o.batch_id) && (
+                  <p className="mt-0.5 text-xs font-semibold text-well-700">
+                    {batchNames.get(o.batch_id)}
+                  </p>
+                )}
                 <p className="mt-0.5 text-xs text-ink-soft">
                   {new Date(o.created_at).toLocaleDateString("en-IN", {
                     day: "numeric",
@@ -100,6 +113,11 @@ export default async function PaymentsPage() {
     .limit(300);
 
   const orders = (data ?? []) as Order[];
+  const ids = [...new Set(orders.map((o) => o.batch_id).filter(Boolean))] as string[];
+  const { data: batchRows } = ids.length
+    ? await supabase.from("batches").select("id, name").in("id", ids)
+    : { data: [] };
+  const batchNames = new Map((batchRows ?? []).map((b) => [b.id as string, b.name as string]));
   const pending = orders.filter((o) => o.status === "pending");
   const settled = orders.filter((o) => o.status !== "pending");
 
@@ -116,7 +134,7 @@ export default async function PaymentsPage() {
           {pending.length === 0 ? (
             <EmptyState title="Nothing to verify" body="New payment references show up here." />
           ) : (
-            <OrdersTable orders={pending} actions />
+            <OrdersTable orders={pending} actions batchNames={batchNames} />
           )}
         </div>
       </section>
@@ -125,7 +143,7 @@ export default async function PaymentsPage() {
         <section className="mt-12">
           <h2 className="text-xl font-semibold sm:text-2xl">History</h2>
           <div className="mt-5">
-            <OrdersTable orders={settled} actions={false} />
+            <OrdersTable orders={settled} actions={false} batchNames={batchNames} />
           </div>
         </section>
       )}

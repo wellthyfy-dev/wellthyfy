@@ -10,6 +10,11 @@ import {
   courseRejectedEmail,
 } from "@/lib/faculty-emails";
 import { adminRecipients, sendMail } from "@/lib/mailer";
+import {
+  newStudentFacultyEmail,
+  paymentRejectedEmail,
+  paymentVerifiedEmail,
+} from "@/lib/order-emails";
 import type { CourseStatus, OrderStatus } from "@/lib/platform";
 import { siteOrigin } from "@/lib/site-origin";
 import { requireAdmin } from "@/lib/supabase/auth";
@@ -17,7 +22,9 @@ import { requireAdmin } from "@/lib/supabase/auth";
 export type ReviewState = { error: string | null };
 
 const field = (form: FormData, key: string, max = 1000) =>
-  String(form.get(key) ?? "").trim().slice(0, max);
+  String(form.get(key) ?? "")
+    .trim()
+    .slice(0, max);
 
 function revalidatePublic() {
   revalidatePath("/");
@@ -36,10 +43,7 @@ function revalidatePublic() {
  * No course is created here — faculty create courses after signing up, and
  * each one is reviewed separately.
  */
-export async function approveApplication(
-  _prev: ReviewState,
-  form: FormData,
-): Promise<ReviewState> {
+export async function approveApplication(_prev: ReviewState, form: FormData): Promise<ReviewState> {
   const { supabase } = await requireAdmin();
 
   const id = field(form, "id", 60);
@@ -87,10 +91,7 @@ export async function approveApplication(
   redirect(`/admin/applications/${id}?notice=${mailed ? "approved" : "approved-nomail"}`);
 }
 
-export async function rejectApplication(
-  _prev: ReviewState,
-  form: FormData,
-): Promise<ReviewState> {
+export async function rejectApplication(_prev: ReviewState, form: FormData): Promise<ReviewState> {
   const { supabase } = await requireAdmin();
 
   const id = field(form, "id", 60);
@@ -158,7 +159,10 @@ export async function resendInvite(form: FormData) {
 // ── Course review ────────────────────────────────────────────────────────────
 
 /** Loads what the decision emails need: the course and its faculty's contact. */
-async function courseForDecision(supabase: Awaited<ReturnType<typeof requireAdmin>>["supabase"], id: string) {
+async function courseForDecision(
+  supabase: Awaited<ReturnType<typeof requireAdmin>>["supabase"],
+  id: string,
+) {
   const { data: course } = await supabase
     .from("courses")
     .select("id, title, slug, status, faculty_id, faculty_name")
@@ -166,7 +170,11 @@ async function courseForDecision(supabase: Awaited<ReturnType<typeof requireAdmi
     .maybeSingle();
   if (!course) return null;
   const { data: faculty } = course.faculty_id
-    ? await supabase.from("profiles").select("email, full_name").eq("id", course.faculty_id).maybeSingle()
+    ? await supabase
+        .from("profiles")
+        .select("email, full_name")
+        .eq("id", course.faculty_id)
+        .maybeSingle()
     : { data: null };
   return { course, faculty };
 }
@@ -266,14 +274,72 @@ export async function setOrderStatusAdmin(form: FormData) {
   const status = field(form, "status", 20) as OrderStatus;
   if (!id || !["pending", "verified", "rejected"].includes(status)) return;
 
+  const { data: order } = await supabase
+    .from("orders")
+    .select(
+      "id, status, course_id, faculty_id, batch_id, course_title, amount_inr, utr, payer_note, student_name, student_email, student_whatsapp",
+    )
+    .eq("id", id)
+    .maybeSingle();
+  if (!order || order.status === status) return;
+
   await supabase
     .from("orders")
     .update({ status, reviewed_at: new Date().toISOString() })
     .eq("id", id);
 
+  // Tell the student (and, once verified, the course's faculty). Email is a
+  // courtesy: the status change has already been saved.
+  if (status !== "pending" && order.student_email) {
+    const origin = await siteOrigin();
+    const [{ data: course }, { data: faculty }, { data: batch }] = await Promise.all([
+      supabase.from("courses").select("slug").eq("id", order.course_id).maybeSingle(),
+      order.faculty_id
+        ? supabase
+            .from("profiles")
+            .select("email, full_name")
+            .eq("id", order.faculty_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+      order.batch_id
+        ? supabase
+            .from("batches")
+            .select("name, mode, start_date, days, start_time, duration_min, venue")
+            .eq("id", order.batch_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
+    const mail = { ...order, batch };
+    const courseUrl = course?.slug ? `${origin}/courses/${course.slug}` : null;
+
+    const mails = [
+      sendMail({
+        to: order.student_email,
+        replyTo: adminRecipients(),
+        ...(status === "verified"
+          ? paymentVerifiedEmail(mail, origin, courseUrl)
+          : paymentRejectedEmail(mail, origin)),
+      }),
+    ];
+    if (status === "verified" && faculty?.email) {
+      mails.push(
+        sendMail({
+          to: faculty.email,
+          replyTo: adminRecipients(),
+          ...newStudentFacultyEmail(mail, faculty.full_name, origin),
+        }),
+      );
+    }
+    for (const result of await Promise.all(mails)) {
+      if (!result.ok) console.warn("[admin] payment email failed:", result.error);
+    }
+  }
+
   revalidatePath("/admin", "layout");
   revalidatePath("/dashboard/student");
   revalidatePath("/dashboard/faculty");
+  // Seats left on the public course page change with every decision.
+  if (order.batch_id) revalidatePath("/courses/[slug]", "page");
 }
 
 /** Take a live course off the site, or put a previously approved one back. */
@@ -288,7 +354,9 @@ export async function setCourseStatusAdmin(form: FormData) {
     .update({
       status,
       published_at: status === "published" ? new Date().toISOString() : null,
-      ...(status === "published" ? { reviewed_at: new Date().toISOString(), review_note: null } : {}),
+      ...(status === "published"
+        ? { reviewed_at: new Date().toISOString(), review_note: null }
+        : {}),
     })
     .eq("id", id);
 

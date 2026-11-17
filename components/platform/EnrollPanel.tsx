@@ -1,10 +1,21 @@
 "use client";
 
-import { AlertCircle, CheckCircle2, Copy, Loader2, Send } from "lucide-react";
+import { AlertCircle, CalendarDays, CheckCircle2, Copy, Loader2, MapPin, Send, Video } from "lucide-react";
 import { useActionState, useState } from "react";
 import { submitEnrollment, type EnrollState } from "@/app/courses/[slug]/actions";
+import { cn } from "@/lib/accents";
 import { formatINR } from "@/lib/platform";
 import { fieldClass, labelClass } from "./AuthForm";
+
+export type BatchChoice = {
+  id: string;
+  name: string;
+  schedule: string;
+  starts: string;
+  mode: string;
+  online: boolean;
+  seatsLeft: number;
+};
 
 export default function EnrollPanel({
   courseId,
@@ -12,14 +23,19 @@ export default function EnrollPanel({
   amount,
   upiId,
   qrSvg,
+  batches = [],
 }: {
   courseId: string;
   slug: string;
   amount: number;
   upiId: string;
   qrSvg: string;
+  /** Open batches to choose from; empty when the course has none. */
+  batches?: BatchChoice[];
 }) {
   const [copied, setCopied] = useState(false);
+  const firstOpen = batches.find((b) => b.seatsLeft > 0)?.id ?? "";
+  const [batchId, setBatchId] = useState(batches.length === 1 ? firstOpen : "");
   const [state, formAction, pending] = useActionState<EnrollState, FormData>(submitEnrollment, {
     error: null,
   });
@@ -30,8 +46,9 @@ export default function EnrollPanel({
         <CheckCircle2 className="size-7 text-well-600" />
         <p className="mt-3 font-display text-lg font-semibold text-ink">Enrolment submitted</p>
         <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-          Your payment reference is with the faculty. Once they confirm it against their bank
-          statement, the course shows as verified in your dashboard.
+          Your payment reference is with the Wellthyfy team
+          {batches.length > 0 ? " and your seat is held" : ""}. We&apos;ll email you as soon as
+          it is verified — your classes then appear in your dashboard.
         </p>
         <a
           href="/dashboard/student"
@@ -53,7 +70,7 @@ export default function EnrollPanel({
         <>
           <p className="mt-2 text-sm leading-relaxed text-ink-soft">
             Scan the QR with any UPI app, or pay to the ID below. Then enter the UTR / reference
-            number from your payment so the faculty can confirm it.
+            number from your payment so our team can confirm it.
           </p>
 
           <div className="mt-5 flex flex-wrap items-center gap-5">
@@ -98,6 +115,69 @@ export default function EnrollPanel({
         <input type="hidden" name="course_id" value={courseId} />
         <input type="hidden" name="slug" value={slug} />
 
+        {batches.length > 0 && (
+          <fieldset>
+            <legend className={labelClass}>Choose your batch</legend>
+            <div className="grid gap-2.5">
+              {batches.map((b) => {
+                const full = b.seatsLeft <= 0;
+                const on = batchId === b.id;
+                return (
+                  <label
+                    key={b.id}
+                    className={cn(
+                      "relative block cursor-pointer rounded-xl border p-3.5 transition-colors",
+                      full
+                        ? "cursor-not-allowed border-navy-900/7 bg-navy-50/40 opacity-60"
+                        : on
+                          ? "border-well-400 bg-well-50 ring-2 ring-well-200"
+                          : "border-navy-900/10 bg-white hover:border-navy-300",
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="batch_id"
+                      value={b.id}
+                      required
+                      disabled={full}
+                      checked={on}
+                      onChange={() => setBatchId(b.id)}
+                      className="sr-only"
+                    />
+                    <span className="flex items-start justify-between gap-2">
+                      <span className="text-sm font-semibold text-ink">{b.name}</span>
+                      <span
+                        className={cn(
+                          "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold",
+                          full
+                            ? "bg-red-50 text-red-700"
+                            : b.seatsLeft <= 5
+                              ? "bg-gold-50 text-gold-800"
+                              : "bg-well-50 text-well-800",
+                        )}
+                      >
+                        {full ? "Full" : `${b.seatsLeft} seat${b.seatsLeft === 1 ? "" : "s"} left`}
+                      </span>
+                    </span>
+                    <span className="mt-1.5 flex items-center gap-1.5 text-xs text-ink-soft">
+                      <CalendarDays className="size-3.5 shrink-0 text-navy-600" />
+                      {b.schedule}
+                    </span>
+                    <span className="mt-1 flex items-center gap-1.5 text-xs text-ink-soft">
+                      {b.online ? (
+                        <Video className="size-3.5 shrink-0 text-navy-600" />
+                      ) : (
+                        <MapPin className="size-3.5 shrink-0 text-navy-600" />
+                      )}
+                      {b.mode} · starts {b.starts}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
+        )}
+
         <div>
           <label htmlFor="utr" className={labelClass}>
             UTR / payment reference
@@ -118,7 +198,7 @@ export default function EnrollPanel({
 
         <div>
           <label htmlFor="payer_note" className={labelClass}>
-            Note for the faculty (optional)
+            Note for our team (optional)
           </label>
           <textarea
             id="payer_note"
@@ -142,7 +222,7 @@ export default function EnrollPanel({
 
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || (batches.length > 0 && !batchId)}
           className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-well-600 via-well-500 to-navy-700 px-7 py-3.5 text-base font-semibold text-white shadow-glow-green transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift disabled:translate-y-0 disabled:opacity-70"
         >
           {pending ? (
