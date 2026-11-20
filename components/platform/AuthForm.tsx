@@ -6,10 +6,17 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { createClient } from "@/lib/supabase/client";
 import PasswordField from "./PasswordField";
-import type { UserRole } from "@/lib/platform";
+import type { AuthArea } from "./AuthShell";
 
 export const fieldClass =
   "w-full rounded-xl border border-navy-900/10 bg-white px-4 py-3 text-[0.95rem] text-ink shadow-sm outline-none transition-all duration-200 placeholder:text-ink-soft/55 focus:border-well-400 focus:ring-4 focus:ring-well-500/12";
+
+/** Where each sign-in page lands when no `next` is given. */
+const HOME: Record<AuthArea, string> = {
+  student: "/dashboard/student",
+  faculty: "/dashboard/faculty",
+  admin: "/admin",
+};
 
 export const labelClass = "mb-1.5 block text-sm font-medium text-ink";
 
@@ -20,7 +27,7 @@ export default function AuthForm({
   requiredDomain,
 }: {
   mode: "login" | "signup";
-  role: UserRole;
+  role: AuthArea;
   next?: string;
   /** Reject any other mail domain before even calling Supabase. */
   requiredDomain?: string;
@@ -89,7 +96,7 @@ export default function AuthForm({
     // Each sign-in page opens its own dashboard, whatever role the account has.
     // The pages themselves still enforce access (and send incomplete profiles
     // to onboarding).
-    router.push(next ?? (role === "faculty" ? "/dashboard/faculty" : "/dashboard/student"));
+    router.push(next ?? HOME[role]);
     router.refresh();
   }
 

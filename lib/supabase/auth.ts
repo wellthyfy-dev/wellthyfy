@@ -54,7 +54,7 @@ export async function requireFaculty() {
  */
 export async function requireAdmin() {
   const { supabase, user, profile } = await getSessionProfile();
-  if (!user) redirect("/login?next=/admin");
+  if (!user) redirect("/admin-login");
   if (!profile?.is_admin) notFound();
   return { supabase, user, profile };
 }

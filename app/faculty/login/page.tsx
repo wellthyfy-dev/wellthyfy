@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import AuthForm from "@/components/platform/AuthForm";
 import { AuthShell } from "@/components/platform/AuthShell";
 import { FACULTY_DOMAIN } from "@/lib/faculty";
+import { siteConfig } from "@/lib/site";
 
 // Deliberately not linked from anywhere on the public site and kept out of
 // search results. Faculty get this address in their approval email.
@@ -22,6 +23,19 @@ export default async function FacultyLoginPage({
       role="faculty"
       title="Faculty sign in"
       subtitle={`Sign in with your @${FACULTY_DOMAIN} mail id.`}
+      footer={
+        <p>
+          First time here? Open the <span className="font-semibold text-ink">Create my faculty
+          account</span> link in your approval email to set your password. Lost it? Write to{" "}
+          <a
+            href={siteConfig.emailHref}
+            className="font-semibold text-navy-800 underline decoration-gold-400 decoration-2 underline-offset-4 hover:text-well-700"
+          >
+            {siteConfig.email}
+          </a>
+          .
+        </p>
+      }
     >
       <AuthForm mode="login" role="faculty" next={next} requiredDomain={FACULTY_DOMAIN} />
     </AuthShell>

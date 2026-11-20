@@ -1,11 +1,14 @@
 import Link from "next/link";
-import { ArrowLeft, GraduationCap, Users } from "lucide-react";
+import { ArrowLeft, GraduationCap, ShieldCheck, Users } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/lib/accents";
 import type { UserRole } from "@/lib/platform";
 
+/** Which sign-in a page belongs to. Admin is a flag on a profile, not a role. */
+export type AuthArea = UserRole | "admin";
+
 export const ROLE_META: Record<
-  UserRole,
+  AuthArea,
   { label: string; icon: typeof Users; tile: string; blurb: string }
 > = {
   faculty: {
@@ -20,6 +23,12 @@ export const ROLE_META: Record<
     tile: "from-well-400 to-well-600",
     blurb: "Enrol in courses and keep your learning in one place.",
   },
+  admin: {
+    label: "Admin",
+    icon: ShieldCheck,
+    tile: "from-navy-700 to-navy-900",
+    blurb: "Review applications, courses and payments.",
+  },
 };
 
 export function AuthShell({
@@ -29,7 +38,7 @@ export function AuthShell({
   children,
   footer,
 }: {
-  role: UserRole;
+  role: AuthArea;
   title: string;
   subtitle: string;
   children: React.ReactNode;
