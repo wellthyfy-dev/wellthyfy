@@ -104,6 +104,88 @@ export function newEnrollmentAdminEmail(o: OrderMailData, origin: string) {
   };
 }
 
+/** To the Wellthyfy team: a student paid through Razorpay and is enrolled. */
+export function razorpayPaidAdminEmail(o: OrderMailData, origin: string) {
+  const link = `${origin}/admin/payments`;
+  const inner = `
+    <tr><td style="padding:28px 28px 8px;">
+      ${eyebrow("Paid online")}
+      <h1 style="margin:0;font-size:22px;line-height:1.3;color:${INK};">${escapeHtml(o.student_name ?? "A student")} enrolled in ${escapeHtml(o.course_title)}</h1>
+    </td></tr>
+    <tr><td style="padding:12px 28px 4px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        ${row("Student", escapeHtml(o.student_name ?? "—"))}
+        ${row("Email", o.student_email ? `<a href="mailto:${escapeHtml(o.student_email)}" style="color:${NAVY};">${escapeHtml(o.student_email)}</a>` : "—")}
+        ${row("WhatsApp", escapeHtml(o.student_whatsapp ?? "—"))}
+        ${row("Course", escapeHtml(o.course_title))}
+        ${o.batch ? row("Batch", escapeHtml(`${o.batch.name} · ${scheduleSummary(o.batch)}`)) : ""}
+        ${row("Amount", escapeHtml(amount(o.amount_inr)))}
+        ${row("Razorpay payment", `<span style="font-family:monospace;">${escapeHtml(o.utr ?? "—")}</span>`)}
+      </table>
+    </td></tr>
+    <tr><td style="padding:22px 28px 26px;">
+      ${para("The payment was confirmed by Razorpay and the enrolment is already verified. Nothing to do.")}
+      ${button(link, "Open payments")}
+    </td></tr>`;
+  return {
+    subject: `Paid online — ${o.student_name ?? "Student"} · ${o.course_title}`,
+    html: shell(inner),
+    text:
+      `Paid online (Razorpay)\n\n${o.student_name ?? "A student"} (${o.student_email ?? "—"}, WhatsApp ${o.student_whatsapp ?? "—"})\n` +
+      `Course: ${o.course_title}\n` +
+      batchText(o.batch) +
+      `Amount: ${amount(o.amount_inr)}\nPayment: ${o.utr ?? "—"}\n\nPayments: ${link}\n`,
+  };
+}
+
+/** To the Wellthyfy team: a Razorpay payment couldn't become an enrolment. */
+export function razorpayRefundedAdminEmail(
+  r: {
+    paymentId: string;
+    orderId: string;
+    reason: string;
+    refunded: boolean;
+    /** Refund id when refunded, otherwise Razorpay's error. */
+    detail: string;
+    courseTitle: string;
+  },
+  origin: string,
+) {
+  const link = `${origin}/admin/payments`;
+  const title = r.refunded ? "Payment refunded automatically" : "Refund needed — automatic refund failed";
+  const inner = `
+    <tr><td style="padding:28px 28px 8px;">
+      ${eyebrow(r.refunded ? "Refunded" : "Action needed", r.refunded ? GREEN : GOLD)}
+      <h1 style="margin:0;font-size:22px;line-height:1.3;color:${INK};">${escapeHtml(title)}</h1>
+    </td></tr>
+    <tr><td style="padding:12px 28px 4px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        ${row("Course", escapeHtml(r.courseTitle || "—"))}
+        ${row("Why", escapeHtml(r.reason))}
+        ${row("Razorpay payment", `<span style="font-family:monospace;">${escapeHtml(r.paymentId)}</span>`)}
+        ${row("Razorpay order", `<span style="font-family:monospace;">${escapeHtml(r.orderId)}</span>`)}
+        ${row(r.refunded ? "Refund" : "Error", `<span style="font-family:monospace;">${escapeHtml(r.detail)}</span>`)}
+      </table>
+    </td></tr>
+    <tr><td style="padding:22px 28px 26px;">
+      ${para(
+        r.refunded
+          ? "The student paid but couldn't be enrolled, so the full amount was refunded. No enrolment was created. You may want to offer them another batch."
+          : "The student paid but couldn't be enrolled, and the automatic refund failed. Refund this payment from the Razorpay dashboard.",
+      )}
+      ${button(link, "Open payments")}
+    </td></tr>`;
+  return {
+    subject: `${title} — ${r.paymentId}`,
+    html: shell(inner),
+    text:
+      `${title}\n\nCourse: ${r.courseTitle || "—"}\nWhy: ${r.reason}\nPayment: ${r.paymentId}\nOrder: ${r.orderId}\n` +
+      `${r.refunded ? "Refund" : "Error"}: ${r.detail}\n\n` +
+      (r.refunded ? "" : "Refund it from the Razorpay dashboard.\n") +
+      `Payments: ${link}\n`,
+  };
+}
+
 /** To the student: we have your payment details. */
 export function enrollmentReceivedEmail(o: OrderMailData, origin: string) {
   const dashboard = `${origin}/dashboard/student`;

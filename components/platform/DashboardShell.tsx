@@ -1,10 +1,12 @@
 import Link from "next/link";
-import { GraduationCap, LogOut, UserPen, Users } from "lucide-react";
+import { ArrowLeftRight, GraduationCap, LogOut, UserPen, Users } from "lucide-react";
 import { cn } from "@/lib/accents";
 import type { Profile } from "@/lib/platform";
+import { canUseFacultyArea } from "@/lib/faculty";
 
 export function DashboardShell({
   profile,
+  area,
   tabs,
   active,
   title,
@@ -13,6 +15,8 @@ export function DashboardShell({
   children,
 }: {
   profile: Profile;
+  /** Which dashboard is showing. Labels follow the page, not the account's role. */
+  area: "student" | "faculty";
   tabs: { href: string; label: string }[];
   active: string;
   title: string;
@@ -20,7 +24,13 @@ export function DashboardShell({
   action?: React.ReactNode;
   children: React.ReactNode;
 }) {
-  const isFaculty = profile.role === "faculty";
+  const isFaculty = area === "faculty";
+  // Only real faculty can move between the two dashboards.
+  const switchTo = canUseFacultyArea(profile)
+    ? isFaculty
+      ? { href: "/dashboard/student", label: "My learning" }
+      : { href: "/dashboard/faculty", label: "Faculty dashboard" }
+    : null;
   const RoleIcon = isFaculty ? Users : GraduationCap;
   const firstName = profile.full_name?.split(" ")[0] ?? "there";
 
@@ -47,6 +57,15 @@ export function DashboardShell({
 
           <div className="flex flex-wrap items-center gap-3">
             {action}
+            {switchTo && (
+              <Link
+                href={switchTo.href}
+                className="inline-flex items-center gap-2 rounded-full border border-navy-200 bg-white/80 px-4 py-2.5 text-sm font-semibold text-navy-800 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-navy-300 hover:shadow-soft"
+              >
+                <ArrowLeftRight className="size-4" strokeWidth={2.2} />
+                {switchTo.label}
+              </Link>
+            )}
             <Link
               href="/dashboard/profile"
               className="inline-flex items-center gap-2 rounded-full border border-navy-200 bg-white/80 px-4 py-2.5 text-sm font-semibold text-navy-800 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-navy-300 hover:shadow-soft"

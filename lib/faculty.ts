@@ -1,4 +1,4 @@
-import type { CourseCategory, CourseMode } from "./platform";
+import type { CourseCategory, CourseMode, Profile } from "./platform";
 
 /** Faculty accounts are only ever issued on this mail domain. */
 export const FACULTY_DOMAIN = "wellthyfy.in";
@@ -6,6 +6,11 @@ export const FACULTY_DOMAIN = "wellthyfy.in";
 /** True only for an address directly on @wellthyfy.in (not info.wellthyfy.in or look-alikes). */
 export function isFacultyEmail(email: string | null | undefined) {
   return Boolean(email) && /^[^\s@]+@wellthyfy\.in$/i.test(String(email).trim());
+}
+
+/** True when this profile may use the faculty dashboard. */
+export function canUseFacultyArea(profile: Pick<Profile, "role" | "email">) {
+  return profile.role === "faculty" && isFacultyEmail(profile.email);
 }
 
 export type IdType = "aadhaar" | "pan" | "passport" | "driving_licence" | "voter_id" | "other";

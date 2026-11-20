@@ -86,7 +86,10 @@ export default function AuthForm({
       setBusy(false);
       return;
     }
-    router.push(next ?? "/dashboard");
+    // Each sign-in page opens its own dashboard, whatever role the account has.
+    // The pages themselves still enforce access (and send incomplete profiles
+    // to onboarding).
+    router.push(next ?? (role === "faculty" ? "/dashboard/faculty" : "/dashboard/student"));
     router.refresh();
   }
 

@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { isFacultyEmail } from "@/lib/faculty";
+import { canUseFacultyArea, isFacultyEmail } from "@/lib/faculty";
 import type { Profile } from "@/lib/platform";
 import { createClient } from "./server";
 
@@ -25,6 +25,15 @@ export async function requireProfile({ completed = true }: { completed?: boolean
   if (!user || !profile) redirect("/login");
   if (completed && !profile.profile_completed) redirect("/onboarding");
   return { supabase, user, profile };
+}
+
+/**
+ * Where "My dashboard" lands. Only a faculty account on a Wellthyfy mail id goes
+ * to the faculty area; everyone else, including legacy faculty rows on other
+ * domains, uses the student dashboard.
+ */
+export function dashboardHomeFor(profile: Pick<Profile, "role" | "email">) {
+  return canUseFacultyArea(profile) ? "/dashboard/faculty" : "/dashboard/student";
 }
 
 /**

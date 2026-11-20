@@ -21,6 +21,7 @@ import {
   Video,
 } from "lucide-react";
 import EnrollPanel, { type BatchChoice } from "@/components/platform/EnrollPanel";
+import { razorpayConfigured } from "@/lib/razorpay";
 import { Icon } from "@/components/ui/Icon";
 import { accentStyles, cn } from "@/lib/accents";
 import {
@@ -470,6 +471,7 @@ export default async function CourseDetailPage({
                       upiId={upiId}
                       qrSvg={qrSvg}
                       batches={choices}
+                      online={razorpayConfigured()}
                     />
                   </div>
                 )}

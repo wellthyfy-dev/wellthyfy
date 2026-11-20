@@ -96,6 +96,8 @@ export type Order = {
   payer_note: string | null;
   /** The live batch chosen at enrolment, when the course runs in batches. */
   batch_id: string | null;
+  /** 'razorpay' orders are verified automatically; `utr` holds the payment id. */
+  payment_method?: "upi" | "razorpay";
   status: OrderStatus;
   created_at: string;
   reviewed_at: string | null;

@@ -63,6 +63,7 @@ export default async function FacultyDashboard() {
   return (
     <DashboardShell
       profile={profile}
+      area="faculty"
       title="Faculty dashboard"
       subtitle="Manage your courses and see who has enrolled."
       tabs={[]}

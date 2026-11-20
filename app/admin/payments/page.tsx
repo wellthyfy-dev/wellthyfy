@@ -56,7 +56,12 @@ function OrdersTable({
                 </p>
               </td>
               <td className="px-5 py-4 font-semibold text-navy-800">{formatINR(o.amount_inr)}</td>
-              <td className="px-5 py-4 font-mono text-xs text-ink-soft">{o.utr}</td>
+              <td className="px-5 py-4 font-mono text-xs text-ink-soft">
+                {o.utr}
+                {o.payment_method === "razorpay" && (
+                  <p className="mt-0.5 font-sans text-[11px] font-semibold text-well-700">Razorpay</p>
+                )}
+              </td>
               <td className="px-5 py-4">
                 <span
                   className={cn(

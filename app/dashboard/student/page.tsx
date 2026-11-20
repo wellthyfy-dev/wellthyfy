@@ -127,6 +127,7 @@ export default async function StudentDashboard({
   return (
     <DashboardShell
       profile={profile}
+      area="student"
       title="My learning"
       subtitle="Your live classes, recordings and every course you have enrolled in."
       tabs={[]}
