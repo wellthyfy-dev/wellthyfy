@@ -11,6 +11,8 @@ import {
   Video,
 } from "lucide-react";
 import { DashboardShell, EmptyState, StatCard } from "@/components/platform/DashboardShell";
+import ChooseBatch from "@/components/platform/ChooseBatch";
+import type { BatchChoice } from "@/components/platform/EnrollPanel";
 import JoinClassButton from "@/components/platform/JoinClassButton";
 import { cn } from "@/lib/accents";
 import {
@@ -27,6 +29,7 @@ import {
 } from "@/lib/batches";
 import { STATUS_LABELS, formatINR, type Order } from "@/lib/platform";
 import { requireProfile } from "@/lib/supabase/auth";
+import { chooseBatch } from "./actions";
 
 export const metadata: Metadata = {
   title: "Student dashboard",
@@ -50,14 +53,23 @@ const CLASS_NOTICES: Record<string, string> = {
   "not-found": "We couldn't find that class.",
 };
 
+const BATCH_NOTICES: Record<string, { ok: boolean; text: string }> = {
+  joined: { ok: true, text: "You're in! Your class timetable is below." },
+  full: { ok: false, text: "Sorry, that batch just filled up. Please pick another one." },
+  closed: { ok: false, text: "That batch is no longer taking students. Please pick another one." },
+  missing: { ok: false, text: "Please pick a batch first." },
+  failed: { ok: false, text: "We couldn't add you to that batch. Please try again or message us on WhatsApp." },
+};
+
 type BatchView = Batch & { courses: { title: string; slug: string } | null };
 
 export default async function StudentDashboard({
   searchParams,
 }: {
-  searchParams: Promise<{ class?: string }>;
+  searchParams: Promise<{ class?: string; batch?: string }>;
 }) {
-  const { class: classNotice } = await searchParams;
+  const { class: classNotice, batch: batchNoticeKey } = await searchParams;
+  const batchNotice = batchNoticeKey ? BATCH_NOTICES[batchNoticeKey] : undefined;
   const { supabase, profile } = await requireProfile();
 
   const { data } = await supabase
@@ -72,6 +84,39 @@ export default async function StudentDashboard({
   const spent = orders
     .filter((o) => o.status === "verified")
     .reduce((sum, o) => sum + o.amount_inr, 0);
+
+  // ── Enrolments with no batch yet: offer the course's open batches ──
+  // (e.g. paid before the faculty created any batch).
+  const unbatched = orders.filter((o) => o.status !== "rejected" && !o.batch_id);
+  const { data: openRows } = unbatched.length
+    ? await supabase
+        .from("batches")
+        .select("*")
+        .in("course_id", [...new Set(unbatched.map((o) => o.course_id))])
+        .eq("status", "open")
+        .order("start_date")
+    : { data: [] };
+  const openBatches = (openRows ?? []) as Batch[];
+  const { data: openTaken } = openBatches.length
+    ? await supabase.rpc("batch_seats_taken", { p_batches: openBatches.map((b) => b.id) })
+    : { data: [] };
+  const takenBy = new Map(
+    ((openTaken ?? []) as { batch_id: string; taken: number }[]).map((r) => [r.batch_id, r.taken]),
+  );
+  const choicesByCourse = new Map<string, BatchChoice[]>();
+  for (const b of openBatches) {
+    const list = choicesByCourse.get(b.course_id) ?? [];
+    list.push({
+      id: b.id,
+      name: b.name,
+      schedule: scheduleSummary(b),
+      starts: formatStartDate(b.start_date),
+      mode: BATCH_MODE_LABELS[b.mode],
+      online: isOnline(b.mode),
+      seatsLeft: Math.max(0, b.seats - (takenBy.get(b.id) ?? 0)),
+    });
+    choicesByCourse.set(b.course_id, list);
+  }
 
   // ── Live classes for every batch the student is in ──
   const batchIds = [...new Set(orders.filter((o) => o.status !== "rejected" && o.batch_id).map((o) => o.batch_id as string))];
@@ -337,6 +382,21 @@ export default async function StudentDashboard({
       <section className="mt-12">
         <h2 className="text-xl font-semibold sm:text-2xl">Enrolments</h2>
 
+        {batchNotice && (
+          <p
+            role="status"
+            className={cn(
+              "mt-4 flex items-start gap-2.5 rounded-xl border px-4 py-3 text-sm font-medium",
+              batchNotice.ok
+                ? "border-well-200 bg-well-50 text-well-900"
+                : "border-gold-200 bg-gold-50 text-gold-900",
+            )}
+          >
+            <AlertCircle className="mt-0.5 size-4.5 shrink-0" />
+            {batchNotice.text}
+          </p>
+        )}
+
         {orders.length === 0 ? (
           <div className="mt-5">
             <EmptyState
@@ -386,6 +446,17 @@ export default async function StudentDashboard({
                   >
                     {STATUS_LABELS[order.status]}
                   </span>
+                  {!order.batch_id &&
+                    order.status !== "rejected" &&
+                    choicesByCourse.has(order.course_id) && (
+                      <div className="basis-full">
+                        <ChooseBatch
+                          orderId={order.id}
+                          choices={choicesByCourse.get(order.course_id)!}
+                          action={chooseBatch}
+                        />
+                      </div>
+                    )}
                 </article>
               </li>
             ))}

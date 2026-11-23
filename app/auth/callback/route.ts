@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) return NextResponse.redirect(`${origin}${next}`);
+    // A failed reset link must never fall through to a dashboard.
+    if (next === "/reset-password") return NextResponse.redirect(`${origin}/forgot-password?error=link`);
     return NextResponse.redirect(`${origin}/student?error=${encodeURIComponent(error.message)}`);
   }
 

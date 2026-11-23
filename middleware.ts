@@ -5,7 +5,8 @@ import { NextResponse, type NextRequest } from "next/server";
 const PROTECTED = ["/dashboard", "/onboarding", "/enroll", "/reset-password", "/classes"];
 
 /** Routes a signed-in user should not see. */
-const AUTH_ONLY = ["/student", "/login", "/signup", "/forgot-password"];
+// /forgot-password stays open to signed-in users so a reset can always be requested.
+const AUTH_ONLY = ["/student", "/login", "/signup"];
 
 /** Each area has its own sign-in page. */
 function signInPathFor(pathname: string) {

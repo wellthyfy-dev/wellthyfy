@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AlertCircle } from "lucide-react";
 import ForgotPasswordForm from "@/components/platform/ForgotPasswordForm";
 import { AuthShell } from "@/components/platform/AuthShell";
 import type { UserRole } from "@/lib/platform";
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 export default async function ForgotPasswordPage({
   searchParams,
 }: {
-  searchParams: Promise<{ role?: string }>;
+  searchParams: Promise<{ role?: string; error?: string }>;
 }) {
   const params = await searchParams;
   const role: UserRole = params.role === "faculty" ? "faculty" : "student";
@@ -34,6 +35,15 @@ export default async function ForgotPasswordPage({
         </p>
       }
     >
+      {params.error === "link" && (
+        <p
+          role="alert"
+          className="mb-5 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800"
+        >
+          <AlertCircle className="mt-0.5 size-4.5 shrink-0 text-red-600" />
+          That reset link has expired or was already used. Enter your email to get a new one.
+        </p>
+      )}
       <ForgotPasswordForm />
     </AuthShell>
   );
