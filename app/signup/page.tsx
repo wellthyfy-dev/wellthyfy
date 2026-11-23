@@ -24,7 +24,7 @@ export default async function SignupPage({
         <p>
           Already registered?{" "}
           <Link
-            href={`/login${next ? `?next=${encodeURIComponent(next)}` : ""}`}
+            href={`/student${next ? `?next=${encodeURIComponent(next)}` : ""}`}
             className="font-semibold text-navy-800 underline decoration-gold-400 decoration-2 underline-offset-4 hover:text-well-700"
           >
             Sign in

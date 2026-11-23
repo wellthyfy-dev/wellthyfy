@@ -37,7 +37,7 @@ export default async function FacultyJoinPage({
           <p>
             Already created your account?{" "}
             <Link
-              href="/faculty/login"
+              href="/faculty"
               className="font-semibold text-navy-800 underline decoration-gold-400 decoration-2 underline-offset-4 hover:text-well-700"
             >
               Faculty sign in

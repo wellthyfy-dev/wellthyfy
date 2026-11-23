@@ -132,7 +132,7 @@ export default function Navbar() {
               <AuthButton label="My dashboard" href="/dashboard" variant="solid" />
             ) : (
               <>
-                <AuthButton label="Student Login" href="/login" variant="ghost" />
+                <AuthButton label="Student Login" href="/student" variant="ghost" />
                 <AuthButton label="Become a Faculty" href="/become-a-faculty" variant="solid" />
               </>
             )}
@@ -202,7 +202,7 @@ export default function Navbar() {
                   <>
                     <AuthButton
                       label="Student Login"
-                      href="/login"
+                      href="/student"
                       variant="ghost"
                       className="w-full py-3"
                     />

@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { canUseFacultyArea, isFacultyEmail } from "@/lib/faculty";
 import type { Profile } from "@/lib/platform";
 import { createClient } from "./server";
@@ -20,9 +20,12 @@ export async function getSessionProfile() {
  * Gate a page behind sign-in. By default also requires a completed profile,
  * so every dashboard can assume contact details exist.
  */
-export async function requireProfile({ completed = true }: { completed?: boolean } = {}) {
+export async function requireProfile({
+  completed = true,
+  signIn = "/student",
+}: { completed?: boolean; signIn?: string } = {}) {
   const { supabase, user, profile } = await getSessionProfile();
-  if (!user || !profile) redirect("/login");
+  if (!user || !profile) redirect(signIn);
   if (completed && !profile.profile_completed) redirect("/onboarding");
   return { supabase, user, profile };
 }
@@ -42,19 +45,19 @@ export function dashboardHomeFor(profile: Pick<Profile, "role" | "email">) {
  * than into the dashboard.
  */
 export async function requireFaculty() {
-  const ctx = await requireProfile();
+  const ctx = await requireProfile({ signIn: "/faculty" });
   if (ctx.profile.role !== "faculty") redirect("/dashboard");
   if (!isFacultyEmail(ctx.profile.email)) redirect("/faculty/restricted");
   return ctx;
 }
 
 /**
- * Admin-only areas. Signed-out visitors go to sign-in; signed-in non-admins get
- * a plain 404 so the panel's existence is not confirmed to them.
+ * Admin-only areas. Anyone who is not a signed-in admin (signed out, or signed
+ * in as a student/faculty) is sent to /admin, which shows the admin sign-in.
+ * /admin itself checks with getSessionProfile first, so this never loops.
  */
 export async function requireAdmin() {
   const { supabase, user, profile } = await getSessionProfile();
-  if (!user) redirect("/admin-login");
-  if (!profile?.is_admin) notFound();
+  if (!user || !profile?.is_admin) redirect("/admin");
   return { supabase, user, profile };
 }

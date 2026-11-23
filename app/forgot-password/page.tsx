@@ -26,7 +26,7 @@ export default async function ForgotPasswordPage({
         <p>
           Remembered it?{" "}
           <Link
-            href={`/login?role=${role}`}
+            href={role === "faculty" ? "/faculty" : "/student"}
             className="font-semibold text-navy-800 underline decoration-gold-400 decoration-2 underline-offset-4 hover:text-well-700"
           >
             Back to sign in

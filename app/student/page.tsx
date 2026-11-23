@@ -4,11 +4,12 @@ import AuthForm from "@/components/platform/AuthForm";
 import { AuthShell } from "@/components/platform/AuthShell";
 
 export const metadata: Metadata = {
-  title: "Sign in",
+  title: "Student sign in",
   robots: { index: false, follow: false },
 };
 
-export default async function LoginPage({
+/** Student sign-in. Lands on /dashboard/student (or `next`). */
+export default async function StudentLoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ next?: string }>;

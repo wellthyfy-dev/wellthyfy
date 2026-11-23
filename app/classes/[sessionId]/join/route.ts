@@ -20,7 +20,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    const login = new URL("/login", request.url);
+    const login = new URL("/student", request.url);
     login.searchParams.set("next", `/classes/${sessionId}/join`);
     return NextResponse.redirect(login);
   }

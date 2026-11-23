@@ -124,6 +124,16 @@ export default function Footer() {
             >
               Privacy Policy
             </Link>
+            <span className="text-navy-900/25" aria-hidden="true">
+              ·
+            </span>
+            <Link
+              href="/admin"
+              rel="nofollow"
+              className="text-ink-soft/70 transition-colors hover:text-navy-800"
+            >
+              Admin
+            </Link>
           </p>
           <p className="flex items-center gap-2">
             <span className="size-1.5 rounded-full bg-well-500" aria-hidden="true" />

@@ -1,11 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-/** Routes that require a signed-in user. */
-const PROTECTED = ["/dashboard", "/onboarding", "/enroll", "/reset-password", "/admin", "/classes"];
+/** Routes that require a signed-in user. /admin handles its own sign-in. */
+const PROTECTED = ["/dashboard", "/onboarding", "/enroll", "/reset-password", "/classes"];
 
 /** Routes a signed-in user should not see. */
-const AUTH_ONLY = ["/login", "/signup", "/forgot-password", "/faculty/login"];
+const AUTH_ONLY = ["/student", "/login", "/signup", "/forgot-password"];
+
+/** Each area has its own sign-in page. */
+function signInPathFor(pathname: string) {
+  if (pathname.startsWith("/admin")) return "/admin";
+  if (pathname.startsWith("/dashboard/faculty")) return "/faculty";
+  return "/student";
+}
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -36,9 +43,17 @@ export async function middleware(request: NextRequest) {
 
   const { pathname, search } = request.nextUrl;
 
+  // Admin sub-pages fall back to /admin, which shows the admin sign-in form.
+  if (!user && pathname.startsWith("/admin/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
+
   if (!user && PROTECTED.some((p) => pathname.startsWith(p))) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = signInPathFor(pathname);
     url.search = `?next=${encodeURIComponent(pathname + search)}`;
     return NextResponse.redirect(url);
   }

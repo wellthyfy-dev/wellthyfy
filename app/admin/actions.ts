@@ -79,7 +79,7 @@ export async function approveApplication(_prev: ReviewState, form: FormData): Pr
         fullName: app.full_name,
         facultyEmail: email,
         joinUrl: `${origin}/faculty/join?token=${token}`,
-        loginUrl: `${origin}/faculty/login`,
+        loginUrl: `${origin}/faculty`,
         note: note || null,
       }),
     });
@@ -148,7 +148,7 @@ export async function resendInvite(form: FormData) {
       fullName: app.full_name,
       facultyEmail: app.assigned_email,
       joinUrl: `${origin}/faculty/join?token=${app.invite_token}`,
-      loginUrl: `${origin}/faculty/login`,
+      loginUrl: `${origin}/faculty`,
       note: app.admin_note,
     }),
   });

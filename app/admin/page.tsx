@@ -3,7 +3,8 @@ import { ArrowRight } from "lucide-react";
 import { EmptyState, StatCard } from "@/components/platform/DashboardShell";
 import { APPLICATION_STATUS_LABELS, type FacultyApplication } from "@/lib/faculty";
 import { COURSE_STATUS_LABELS, formatINR, type Course } from "@/lib/platform";
-import { requireAdmin } from "@/lib/supabase/auth";
+import { AdminSignIn } from "@/components/platform/AdminSignIn";
+import { getSessionProfile, requireAdmin } from "@/lib/supabase/auth";
 
 const rowClass =
   "group flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-navy-900/7 bg-white/85 p-5 shadow-soft backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift";
@@ -26,6 +27,10 @@ function QueueHeader({ title, href, label }: { title: string; href: string; labe
 }
 
 export default async function AdminOverview() {
+  // /admin doubles as the admin sign-in page.
+  const session = await getSessionProfile();
+  if (!session.profile?.is_admin) return <AdminSignIn signedInAs={session.user?.email} />;
+
   const { supabase } = await requireAdmin();
 
   const head = (table: string) =>

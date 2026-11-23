@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import AuthForm from "@/components/platform/AuthForm";
 import { AuthShell } from "@/components/platform/AuthShell";
-import { FACULTY_DOMAIN } from "@/lib/faculty";
+import { canUseFacultyArea, FACULTY_DOMAIN } from "@/lib/faculty";
+import { getSessionProfile } from "@/lib/supabase/auth";
 import { siteConfig } from "@/lib/site";
 
-// Deliberately not linked from anywhere on the public site and kept out of
-// search results. Faculty get this address in their approval email.
+// Faculty sign-in. Not linked from the public site and kept out of search
+// results. Faculty get this address in their approval email.
 export const metadata: Metadata = {
   title: "Faculty sign in",
   robots: { index: false, follow: false },
 };
+
+export const dynamic = "force-dynamic";
 
 export default async function FacultyLoginPage({
   searchParams,
@@ -17,6 +21,10 @@ export default async function FacultyLoginPage({
   searchParams: Promise<{ next?: string }>;
 }) {
   const { next } = await searchParams;
+
+  // Already signed in as faculty: straight to the faculty dashboard.
+  const { profile } = await getSessionProfile();
+  if (profile && canUseFacultyArea(profile)) redirect(next ?? "/dashboard/faculty");
 
   return (
     <AuthShell

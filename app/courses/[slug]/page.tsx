@@ -428,7 +428,7 @@ export default async function CourseDetailPage({
                       Sign up to enrol
                     </Link>
                     <Link
-                      href={`/login?role=student&next=${encodeURIComponent(`/courses/${course.slug}`)}`}
+                      href={`/student?next=${encodeURIComponent(`/courses/${course.slug}`)}`}
                       className="mt-3 block text-center text-xs font-medium text-ink-soft underline underline-offset-4 hover:text-navy-800"
                     >
                       I already have an account

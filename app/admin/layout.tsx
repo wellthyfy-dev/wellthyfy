@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ShieldCheck } from "lucide-react";
 import AdminTabs from "@/components/platform/AdminTabs";
-import { requireAdmin } from "@/lib/supabase/auth";
+import { getSessionProfile } from "@/lib/supabase/auth";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -11,7 +11,11 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { supabase, profile } = await requireAdmin();
+  const { supabase, profile } = await getSessionProfile();
+
+  // Not an admin: no panel chrome. /admin renders the admin sign-in form and
+  // every sub-page's requireAdmin() sends the visitor back to /admin.
+  if (!profile?.is_admin) return <>{children}</>;
 
   const [apps, courses, payments] = await Promise.all([
     supabase
