@@ -298,3 +298,17 @@ export async function saveRecording(form: FormData) {
   revalidateBatch(batchId, batch.course_id, course.slug);
   redirect(back(batchId, { notice: url ? "recording" : "recording-removed" }));
 }
+
+// ── Delete ───────────────────────────────────────────────────────────────────
+
+/** Delete an empty batch. The database refuses while any student holds a seat. */
+export async function deleteBatch(form: FormData) {
+  const batchId = text(form, "batch_id", 64);
+  const { supabase, batch, course } = await ownBatch(batchId);
+
+  const { error } = await supabase.rpc("delete_batch", { p_batch: batchId });
+  if (error) redirect(back(batchId, { error: friendly(error.message) }));
+
+  revalidateBatch(batchId, batch.course_id, course.slug);
+  redirect(`/dashboard/faculty/courses/${batch.course_id}/batches?notice=deleted`);
+}

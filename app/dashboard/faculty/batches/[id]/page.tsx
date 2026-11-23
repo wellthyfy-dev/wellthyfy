@@ -34,7 +34,8 @@ import {
 } from "@/lib/batches";
 import { STATUS_LABELS, type Order } from "@/lib/platform";
 import { requireFaculty } from "@/lib/supabase/auth";
-import { saveRecording, updateBatchDetails, updateSession } from "../actions";
+import DeleteBatchButton from "@/components/platform/DeleteBatchButton";
+import { deleteBatch, saveRecording, updateBatchDetails, updateSession } from "../actions";
 
 export const metadata: Metadata = {
   title: "Manage batch",
@@ -419,6 +420,29 @@ export default async function ManageBatchPage({
                   </tbody>
                 </table>
               </div>
+            )}
+          </section>
+
+          {/* Delete */}
+          <section className="mt-12 rounded-3xl border border-red-200/70 bg-white/85 p-6 shadow-soft sm:p-8">
+            <h2 className="text-xl font-semibold">Delete batch</h2>
+            {held > 0 ? (
+              <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                {held} student{held === 1 ? " holds" : "s hold"} a seat in this batch, so it can&apos;t be
+                deleted. To stop new enrolments, set its status to <strong>Closed</strong> above. If it
+                must go, ask the Wellthyfy team to move the students to another batch first.
+              </p>
+            ) : (
+              <>
+                <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                  Removes this batch, its timetable and any recordings. No students are enrolled, so
+                  nobody is affected. This cannot be undone.
+                </p>
+                <form action={deleteBatch} className="mt-5">
+                  <input type="hidden" name="batch_id" value={batch.id} />
+                  <DeleteBatchButton name={batch.name} />
+                </form>
+              </>
             )}
           </section>
         </div>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, CalendarDays, MapPin, Users, Video } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, MapPin, Users, Video } from "lucide-react";
 import BatchForm from "@/components/platform/BatchForm";
 import { EmptyState } from "@/components/platform/DashboardShell";
 import { cn } from "@/lib/accents";
@@ -29,10 +29,13 @@ const todayIst = () =>
 
 export default async function CourseBatchesPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ notice?: string }>;
 }) {
   const { id } = await params;
+  const { notice } = await searchParams;
   const { supabase, profile } = await requireFaculty();
 
   const { data } = await supabase
@@ -71,6 +74,16 @@ export default async function CourseBatchesPage({
             <ArrowLeft className="size-4 transition-transform duration-300 group-hover:-translate-x-1" />
             Back to dashboard
           </Link>
+
+          {notice === "deleted" && (
+            <p
+              role="status"
+              className="mt-6 flex items-center gap-2.5 rounded-xl border border-well-200 bg-well-50 px-4 py-3 text-sm font-medium text-well-900"
+            >
+              <CheckCircle2 className="size-4.5 shrink-0 text-well-600" />
+              Batch deleted.
+            </p>
+          )}
 
           <h1 className="mt-7 text-3xl font-semibold leading-[1.12] sm:text-4xl">
             Batches · <span className="text-gradient-brand">{course.title}</span>
